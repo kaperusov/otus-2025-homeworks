@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
-	startTime := time.Now()
-
-	log.Printf("Received request: %s %s", r.Method, r.URL.Path)
+	startTime := beginRequest(r.Method, r.URL.Path)
 
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -28,19 +28,42 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	endRequest(startTime, r.Method, r.URL.Path)
+}
+
+func helloHandler(w http.ResponseWriter, r *http.Request) {
+	startTime := beginRequest(r.Method, r.URL.Path)
+
+	vars := mux.Vars(r)
+	name := vars["name"]
+
+	response := map[string]string{"hello": name}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+
+	endRequest(startTime, r.Method, r.URL.Path)
+}
+
+func beginRequest(method string, path string) time.Time {
+	startTime := time.Now()
+	log.Printf("Received request: %s %s", method, path)
+	return startTime
+}
+
+func endRequest(startTime time.Time, method string, path string) {
 	duration := time.Since(startTime)
-	log.Printf("Request processed successfully in %v", duration)
+	log.Printf("Request %s %s processed successfully in %v", method, path, duration)
 }
 
 func main() {
 	// Настройка логгера
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
-	log.Println("Starting server on :8000")
 
-	http.HandleFunc("/health", healthHandler)
+	r := mux.NewRouter()
+	r.HandleFunc("/health", healthHandler).Methods("GET")
+	r.HandleFunc("/hello/{name}", helloHandler).Methods("GET")
 
-	if err := http.ListenAndServe(":8000", nil); err != nil {
-		log.Fatalf("Server failed: %v", err)
-	}
+	log.Println("Server started at :8000")
+	log.Fatal(http.ListenAndServe(":8000", r))
 }
