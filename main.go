@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"log"
 	"net/http"
 	"os"
@@ -56,6 +57,10 @@ func endRequest(startTime time.Time, method string, path string) {
 }
 
 func main() {
+	// Определяем флаг (--port или -p)
+	port := flag.String("port", "8000", "Port to run the server on")
+	flag.Parse()
+
 	// Настройка логгера
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
@@ -64,6 +69,6 @@ func main() {
 	r.HandleFunc("/health", healthHandler).Methods("GET")
 	r.HandleFunc("/hello/{name}", helloHandler).Methods("GET")
 
-	log.Println("Server started at :8000")
-	log.Fatal(http.ListenAndServe(":8000", r))
+	log.Printf("Server started at :%v", *port)
+	log.Fatal(http.ListenAndServe(":"+*port, r))
 }
