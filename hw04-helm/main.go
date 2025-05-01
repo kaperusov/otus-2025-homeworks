@@ -38,7 +38,7 @@ func main() {
 	configPath := flag.String("config", "application.yaml", "Path to config file")
 	flag.Parse()
 
-	log.Printf("Loading configuration: %v", configPath)
+	log.Printf("Loading configuration: %v", *configPath)
 	config.LoadConfig(*configPath)
 
 	db, err := database.New()

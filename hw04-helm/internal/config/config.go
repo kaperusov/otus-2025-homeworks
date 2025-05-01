@@ -34,5 +34,5 @@ func LoadConfig(configPath string) {
 	if err := decoder.Decode(AppConfig); err != nil {
 		panic(fmt.Sprintf("Failed while read config file: %v", err))
 	}
-	log.Printf("Loaded config file %v", &configPath)
+	log.Printf("Config successfylly loaded")
 }

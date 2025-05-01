@@ -2,5 +2,12 @@ datasource:
   host: localhost
   name: users
   port: 5432
-  username: app_user
-  password: Your$trongP@ss0rd
+  # username: db_user
+  # password: Your$trongP@ss0rd
+
+  # Или используйте переменные окружения: 
+  # "env": {
+  #   "DATASOURCE_USERNAME": "db_user",
+  #   "DATASOURCE_PASSWORD": "Your$trongP@ss0rd"
+  # },
+  

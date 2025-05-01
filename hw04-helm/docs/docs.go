@@ -44,7 +44,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/swagger.User"
+                            "$ref": "#/definitions/models.User"
                         }
                     }
                 ],
@@ -52,19 +52,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Успешно создан",
                         "schema": {
-                            "$ref": "#/definitions/swagger.User"
+                            "$ref": "#/definitions/models.User"
                         }
                     },
                     "400": {
                         "description": "Неверные входные данные",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Ошибка сервера",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
@@ -93,19 +93,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Успешный запрос",
                         "schema": {
-                            "$ref": "#/definitions/swagger.User"
+                            "$ref": "#/definitions/models.User"
                         }
                     },
                     "404": {
                         "description": "Пользователь не найден",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Ошибка сервера",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
@@ -136,7 +136,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/swagger.User"
+                            "$ref": "#/definitions/models.User"
                         }
                     }
                 ],
@@ -144,25 +144,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Успешно обновлен",
                         "schema": {
-                            "$ref": "#/definitions/swagger.User"
+                            "$ref": "#/definitions/models.User"
                         }
                     },
                     "400": {
                         "description": "Неверные входные данные",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Пользователь не найден",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Ошибка сервера",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
@@ -189,19 +189,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Успешно удален",
                         "schema": {
-                            "$ref": "#/definitions/swagger.StatusResponse"
+                            "$ref": "#/definitions/models.StatusResponse"
                         }
                     },
                     "404": {
                         "description": "Пользователь не найден",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Ошибка сервера",
                         "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
@@ -209,7 +209,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "swagger.ErrorResponse": {
+        "models.ErrorResponse": {
             "type": "object",
             "properties": {
                 "code": {
@@ -220,7 +220,7 @@ const docTemplate = `{
                 }
             }
         },
-        "swagger.StatusResponse": {
+        "models.StatusResponse": {
             "type": "object",
             "properties": {
                 "status": {
@@ -228,7 +228,7 @@ const docTemplate = `{
                 }
             }
         },
-        "swagger.User": {
+        "models.User": {
             "type": "object",
             "properties": {
                 "email": {

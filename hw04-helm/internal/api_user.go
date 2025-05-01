@@ -35,10 +35,10 @@ func SetDB(database *gorm.DB) {
 // @Tags Пользователи
 // @Accept json
 // @Produce json
-// @Param user body User true "Данные пользователя"
-// @Success 200 {object} User "Успешно создан"
-// @Failure 400 {object} ErrorResponse "Неверные входные данные"
-// @Failure 500 {object} ErrorResponse "Ошибка сервера"
+// @Param user body models.User true "Данные пользователя"
+// @Success 200 {object} models.User "Успешно создан"
+// @Failure 400 {object} models.ErrorResponse "Неверные входные данные"
+// @Failure 500 {object} models.ErrorResponse "Ошибка сервера"
 // @Router /users [post]
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -65,9 +65,9 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 // @Tags Пользователи
 // @Produce json
 // @Param id path int true "ID пользователя"
-// @Success 200 {object} User "Успешный запрос"
-// @Failure 404 {object} ErrorResponse "Пользователь не найден"
-// @Failure 500 {object} ErrorResponse "Ошибка сервера"
+// @Success 200 {object} models.User "Успешный запрос"
+// @Failure 404 {object} models.ErrorResponse "Пользователь не найден"
+// @Failure 500 {object} models.ErrorResponse "Ошибка сервера"
 // @Router /users/{id} [get]
 func FindUserById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -93,11 +93,11 @@ func FindUserById(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param id path int true "ID пользователя"
-// @Param user body User true "Обновленные данные пользователя"
-// @Success 200 {object} User "Успешно обновлен"
-// @Failure 400 {object} ErrorResponse "Неверные входные данные"
-// @Failure 404 {object} ErrorResponse "Пользователь не найден"
-// @Failure 500 {object} ErrorResponse "Ошибка сервера"
+// @Param user body models.User true "Обновленные данные пользователя"
+// @Success 200 {object} models.User "Успешно обновлен"
+// @Failure 400 {object} models.ErrorResponse "Неверные входные данные"
+// @Failure 404 {object} models.ErrorResponse "Пользователь не найден"
+// @Failure 500 {object} models.ErrorResponse "Ошибка сервера"
 // @Router /users/{id} [put]
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -134,9 +134,9 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 // @Tags Пользователи
 // @Produce json
 // @Param id path int true "ID пользователя"
-// @Success 200 {object} StatusResponse "Успешно удален"
-// @Failure 404 {object} ErrorResponse "Пользователь не найден"
-// @Failure 500 {object} ErrorResponse "Ошибка сервера"
+// @Success 200 {object} models.StatusResponse "Успешно удален"
+// @Failure 404 {object} models.ErrorResponse "Пользователь не найден"
+// @Failure 500 {object} models.ErrorResponse "Ошибка сервера"
 // @Router /users/{id} [delete]
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")

@@ -1,18 +1,18 @@
 basePath: /api/v1
 definitions:
-  swagger.ErrorResponse:
+  models.ErrorResponse:
     properties:
       code:
         type: integer
       message:
         type: string
     type: object
-  swagger.StatusResponse:
+  models.StatusResponse:
     properties:
       status:
         type: string
     type: object
-  swagger.User:
+  models.User:
     properties:
       email:
         type: string
@@ -52,22 +52,22 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/swagger.User'
+          $ref: '#/definitions/models.User'
       produces:
       - application/json
       responses:
         "200":
           description: Успешно создан
           schema:
-            $ref: '#/definitions/swagger.User'
+            $ref: '#/definitions/models.User'
         "400":
           description: Неверные входные данные
           schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Ошибка сервера
           schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
       summary: Создать нового пользователя
       tags:
       - Пользователи
@@ -86,15 +86,15 @@ paths:
         "200":
           description: Успешно удален
           schema:
-            $ref: '#/definitions/swagger.StatusResponse'
+            $ref: '#/definitions/models.StatusResponse'
         "404":
           description: Пользователь не найден
           schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Ошибка сервера
           schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
       summary: Удалить пользователя
       tags:
       - Пользователи
@@ -112,15 +112,15 @@ paths:
         "200":
           description: Успешный запрос
           schema:
-            $ref: '#/definitions/swagger.User'
+            $ref: '#/definitions/models.User'
         "404":
           description: Пользователь не найден
           schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Ошибка сервера
           schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
       summary: Найти пользователя по ID
       tags:
       - Пользователи
@@ -139,26 +139,26 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/swagger.User'
+          $ref: '#/definitions/models.User'
       produces:
       - application/json
       responses:
         "200":
           description: Успешно обновлен
           schema:
-            $ref: '#/definitions/swagger.User'
+            $ref: '#/definitions/models.User'
         "400":
           description: Неверные входные данные
           schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
         "404":
           description: Пользователь не найден
           schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Ошибка сервера
           schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
       summary: Обновить данные пользователя
       tags:
       - Пользователи
