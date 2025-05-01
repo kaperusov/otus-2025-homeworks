@@ -47,7 +47,35 @@ kubectl apply -f .
 echo "$(minikube ip) arch.homework" | sudo tee -a /etc/hosts
 ```
 
+**Шаг 4.**
+
 Проверка доступности приложения:
 ```bash
 curl -s http://arch.homework/health | jq
 ```
+
+**Задание со звездочкой**
+
+Для реализации правила переадрсации с /otusapp/{student name}/* на arch.homework/health
+необходимо изменить `pathType` c `Prefix` на `ImplementationSpecific` и включить две аннотации
+разрешающую regex + rewrite: 
+
+```yaml
+annotations:
+  nginx.ingress.kubernetes.io/rewrite-target: /$2 
+  nginx.ingress.kubernetes.io/use-regex: "true"
+```
+
+После чего, сам путь можно обработать таким выражением: `/otusapp/([^/]+)/(.*)`,
+что в nginx контроллере будет интерпретировано как 
+```
+location ~* ^/otusapp/([^/]+)/(.*) {
+    rewrite ^/otusapp/([^/]+)/(.*) /$2 break; # режет /otusapp/{student} оставляя хвост
+    proxy_pass http://hw-svc.otus.svc.cluster.local;
+}
+```
+
+Таким образом, правило rewrite будет работать следующим образом:
+
+$1 — это ([^/]+) → имя студента.
+$2 — это (.*) → health (хвост url)
