@@ -1,7 +1,7 @@
 /*
  * User Service
  *
- * This is simple client API 
+ * This is simple client API
  *
  * API version: 1.0.0
  * Contact: schetinnikov@gmail.com
@@ -9,8 +9,7 @@
  */
 package swagger
 
-type ModelError struct {
-
+type ErrorResponse struct {
 	Code int32 `json:"code"`
 
 	Message string `json:"message"`

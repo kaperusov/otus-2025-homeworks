@@ -1,7 +1,7 @@
 /*
  * User Service
  *
- * This is simple client API 
+ * This is simple client API
  *
  * API version: 1.0.0
  * Contact: schetinnikov@gmail.com
@@ -13,22 +13,66 @@ import (
 	"net/http"
 )
 
+// CreateUser godoc
+// @Summary Создать нового пользователя
+// @Description Создает нового пользователя в системе
+// @Tags Пользователи
+// @Accept json
+// @Produce json
+// @Param user body User true "Данные пользователя"
+// @Success 200 {object} User "Успешно создан"
+// @Failure 400 {object} ErrorResponse "Неверные входные данные"
+// @Failure 500 {object} ErrorResponse "Ошибка сервера"
+// @Router /users [post]
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 }
 
-func DeleteUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-}
-
+// FindUserById godoc
+// @Summary Найти пользователя по ID
+// @Description Возвращает информацию о пользователе по его идентификатору
+// @Tags Пользователи
+// @Produce json
+// @Param id path int true "ID пользователя"
+// @Success 200 {object} User "Успешный запрос"
+// @Failure 404 {object} ErrorResponse "Пользователь не найден"
+// @Failure 500 {object} ErrorResponse "Ошибка сервера"
+// @Router /users/{id} [get]
 func FindUserById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 }
 
+// UpdateUser godoc
+// @Summary Обновить данные пользователя
+// @Description Обновляет информацию о пользователе
+// @Tags Пользователи
+// @Accept json
+// @Produce json
+// @Param id path int true "ID пользователя"
+// @Param user body User true "Обновленные данные пользователя"
+// @Success 200 {object} User "Успешно обновлен"
+// @Failure 400 {object} ErrorResponse "Неверные входные данные"
+// @Failure 404 {object} ErrorResponse "Пользователь не найден"
+// @Failure 500 {object} ErrorResponse "Ошибка сервера"
+// @Router /users/{id} [put]
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+}
+
+// DeleteUser godoc
+// @Summary Удалить пользователя
+// @Description Удаляет пользователя по его идентификатору
+// @Tags Пользователи
+// @Produce json
+// @Param id path int true "ID пользователя"
+// @Success 200 {object} StatusResponse "Успешно удален"
+// @Failure 404 {object} ErrorResponse "Пользователь не найден"
+// @Failure 500 {object} ErrorResponse "Ошибка сервера"
+// @Router /users/{id} [delete]
+func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 }

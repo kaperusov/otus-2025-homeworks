@@ -12,9 +12,12 @@ package swagger
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
+
+	_ "otus/crud/docs"
+
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type Route struct {
@@ -40,6 +43,9 @@ func NewRouter() *mux.Router {
 			Handler(handler)
 	}
 
+	// Добавляем роут для Swagger UI
+	router.PathPrefix("/swagger-ui/").Handler(httpSwagger.WrapHandler)
+
 	return router
 }
 
@@ -48,38 +54,11 @@ func Index(w http.ResponseWriter, r *http.Request) {
 }
 
 var routes = Routes{
-	Route{
-		"Index",
-		"GET",
-		"/api/v1//",
-		Index,
-	},
-
-	Route{
-		"CreateUser",
-		strings.ToUpper("Post"),
-		"/api/v1//user",
-		CreateUser,
-	},
-
-	Route{
-		"DeleteUser",
-		strings.ToUpper("Delete"),
-		"/api/v1//user/{userId}",
-		DeleteUser,
-	},
-
-	Route{
-		"FindUserById",
-		strings.ToUpper("Get"),
-		"/api/v1//user/{userId}",
-		FindUserById,
-	},
-
-	Route{
-		"UpdateUser",
-		strings.ToUpper("Put"),
-		"/api/v1//user/{userId}",
-		UpdateUser,
-	},
+	// Web page
+	Route{"Index", "GET", "/", Index},
+	// API
+	Route{"CreateUser", "POST", "/api/v1/users", CreateUser},
+	Route{"DeleteUser", "DELETE", "/api/v1/users/{userId}", DeleteUser},
+	Route{"FindUserById", "GET", "/api/v1/users/{userId}", FindUserById},
+	Route{"UpdateUser", "PUT", "/api/v1/users/{userId}", UpdateUser},
 }

@@ -1,7 +1,7 @@
 /*
  * User Service
  *
- * This is simple client API 
+ * This is simple client API
  *
  * API version: 1.0.0
  * Contact: schetinnikov@gmail.com
@@ -10,7 +10,6 @@
 package swagger
 
 type User struct {
-
 	Id int64 `json:"id,omitempty"`
 
 	Username string `json:"username,omitempty"`
@@ -22,4 +21,8 @@ type User struct {
 	Email string `json:"email,omitempty"`
 
 	Phone string `json:"phone,omitempty"`
+}
+
+type StatusResponse struct {
+	Status string `json:"status"`
 }
