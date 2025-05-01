@@ -10,10 +10,13 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 
 	srv "otus/crud/internal"
+	"otus/crud/internal/config"
+	"otus/crud/internal/database"
 )
 
 // @title OTUS Homework #04
@@ -32,6 +35,18 @@ import (
 // @BasePath /api/v1
 // @schemes http
 func main() {
+	configPath := flag.String("config", "application.yaml", "Path to config file")
+	flag.Parse()
+
+	log.Printf("Loading configuration: %v", configPath)
+	config.LoadConfig(*configPath)
+
+	db, err := database.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+	srv.SetDB(db.DB)
+
 	log.Printf("Server started")
 
 	router := srv.NewRouter()

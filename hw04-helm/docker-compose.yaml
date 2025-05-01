@@ -1,0 +1,11 @@
+services:
+  db:
+    container_name: users-db
+    image: "postgres:14"
+    environment:
+      POSTGRES_DB: "users"
+      POSTGRES_USER: "user"
+      POSTGRES_PASSWORD: "qwe"
+    ports:
+      - "5432:5432"
+    restart: unless-stopped

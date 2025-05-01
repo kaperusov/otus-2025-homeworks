@@ -10,8 +10,24 @@
 package swagger
 
 import (
+	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
+	"strconv"
+
+	"otus/crud/internal/models"
+
+	"github.com/gorilla/mux"
+	"gorm.io/gorm"
 )
+
+var db *gorm.DB
+
+// Функция инициализации (вызывается из main)
+func SetDB(database *gorm.DB) {
+	db = database
+}
 
 // CreateUser godoc
 // @Summary Создать нового пользователя
@@ -26,7 +42,21 @@ import (
 // @Router /users [post]
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
+
+	var user models.User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	//Создание записи
+	db.Create(&user)
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		log.Printf("Failed to encode response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 // FindUserById godoc
@@ -41,7 +71,19 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 // @Router /users/{id} [get]
 func FindUserById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
+
+	vars := mux.Vars(r)
+	id := vars["userId"]
+
+	// Чтение записи
+	var user models.User
+	db.First(&user, "id = ?", id)
+	fmt.Printf("User: %+v\n", user)
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		log.Printf("Failed to encode response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 // UpdateUser godoc
@@ -59,7 +101,31 @@ func FindUserById(w http.ResponseWriter, r *http.Request) {
 // @Router /users/{id} [put]
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
+
+	vars := mux.Vars(r)
+	id := vars["userId"]
+
+	var user models.User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	user.Id, err = strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		// ... handle error
+		panic(err)
+	}
+
+	// Редактирование записи
+	db.Save(&user)
+	fmt.Printf("User: %+v\n", user)
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		log.Printf("Failed to encode response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 // DeleteUser godoc
@@ -74,5 +140,17 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 // @Router /users/{id} [delete]
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
+
+	vars := mux.Vars(r)
+	id := vars["userId"]
+
+	// Удаление записи
+	var user models.User
+	db.Delete(&user, "id = ?", id)
+	fmt.Printf("User: %+v\n", user)
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		log.Printf("Failed to encode response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }

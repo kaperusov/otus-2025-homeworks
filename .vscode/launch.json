@@ -20,7 +20,7 @@
             "mode": "auto",
             "program": "${workspaceFolder}/hw04-helm/main.go",
             "env": {},
-            "args": []
+            "args": ["--config", "./application.local.yaml"]
         },
     ]
 }

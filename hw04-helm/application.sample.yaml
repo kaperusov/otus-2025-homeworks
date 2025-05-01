@@ -1,0 +1,6 @@
+datasource:
+  host: localhost
+  name: users
+  port: 5432
+  username: app_user
+  password: Your$trongP@ss0rd
