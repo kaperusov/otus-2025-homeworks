@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: hw
-        image: kaperusov/otus-hw2:2025.04.01
+        image: kaperusov/otus-hw2:2025.05.01
         imagePullPolicy: Always
         resources:
           requests:
