@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-configmap
+data:
+  application.yaml: |-
+    datasource:
+        host: 172.28.176.228
+        name: users
+        port: 5432
+        # Логин и пароль подставятся из env-переменных!

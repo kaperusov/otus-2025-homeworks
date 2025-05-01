@@ -8,7 +8,7 @@ DOCKER_IMAGE_V  ?= $(APP_NAME):$(APP_VERSION)
 DOCKER_IMAGE_L  ?= $(APP_NAME):latest
 
 .PHONY: all
-all: build 
+all: build docker-image
 
 
 # To debuging dockerfile build stage only
@@ -20,6 +20,9 @@ swag:
 	~/go/bin/swag init --generalInfo main.go --dir . --output docs --parseDependency
 
 build: swag
+	CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o ./bin/app
+
+docker-image:
 	docker build \
 		-t $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_V) \
 		-t $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_L) \
@@ -40,6 +43,18 @@ run:
 login: 
 	docker login --username $(DOCKER_REGISTRY)
 
-push: login
+docker-push: login
 	docker push $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_V)
 	docker push $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_L)
+
+
+NAMESPACE := otus 
+DRY_RUN   := 
+#--dry-run
+CHARTS = app
+
+$(CHARTS):
+	helm upgrade --install $@ -n $(NAMESPACE) \
+		./charts/$@ \
+		--values charts/$@/values.yaml \
+		$(DRY_RUN)
