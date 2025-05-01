@@ -6,17 +6,21 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/mux"
 )
 
+var isReady atomic.Bool
+
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	startTime := beginRequest(r.Method, r.URL.Path)
+	defer endRequest(startTime, r.Method, r.URL.Path)
 
 	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		log.Printf("Method not allowed: %s", r.Method)
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		log.Printf("healthHandler: unsupported method %s", r.Method)
 		return
 	}
 
@@ -24,16 +28,13 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		log.Printf("Failed to encode response: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		log.Printf("healthHandler: failed to encode JSON response: %v", err)
 	}
-
-	endRequest(startTime, r.Method, r.URL.Path)
 }
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
 	startTime := beginRequest(r.Method, r.URL.Path)
+	defer endRequest(startTime, r.Method, r.URL.Path)
 
 	vars := mux.Vars(r)
 	name := vars["name"]
@@ -41,8 +42,28 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 	response := map[string]string{"hello": name}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+}
 
-	endRequest(startTime, r.Method, r.URL.Path)
+func readyHandler(w http.ResponseWriter, r *http.Request) {
+	startTime := beginRequest(r.Method, r.URL.Path)
+	defer endRequest(startTime, r.Method, r.URL.Path)
+
+	if !isReady.Load() {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]string{"status": "NOT_READY"})
+		return
+	}
+
+	response := map[string]string{"status": "READY"}
+	// Если в HTTP заголовке передали имя студента, добавляем его в ответ
+	if studentName := r.Header.Get("X-Student-Name"); studentName != "" {
+		response["student"] = studentName
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 func beginRequest(method string, path string) time.Time {
@@ -61,12 +82,19 @@ func main() {
 	port := flag.String("port", "8000", "Port to run the server on")
 	flag.Parse()
 
+	// эмулируем инициализацию
+	go func() {
+		time.Sleep(5 * time.Second) // имитируем загрузку
+		isReady.Store(true)
+	}()
+
 	// Настройка логгера
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/health", healthHandler).Methods("GET")
+	r.HandleFunc("/ready", readyHandler).Methods("GET")
 	r.HandleFunc("/hello/{name}", helloHandler).Methods("GET")
 
 	log.Printf("Server started at :%v", *port)

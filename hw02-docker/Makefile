@@ -1,6 +1,6 @@
 
 APP_NAME        ?= otus-hw2
-APP_VERSION     ?= 2025.04.01
+APP_VERSION     ?= 2025.05.01
 APP_PORT        ?= 8000
 
 DOCKER_REGISTRY ?= kaperusov
