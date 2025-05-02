@@ -5,7 +5,7 @@ metadata:
 data:
   application.yaml: |-
     datasource:
-        host: 172.28.176.228
-        name: users
-        port: 5432
+        host: {{ .Values.global.postgresql.service.name | default "db-postgresql" }}
+        port: {{ .Values.global.postgresql.service.ports.postgresql | default "5432" }}
+        name: {{ .Values.global.postgresql.auth.database | default "users" }}
         # Логин и пароль подставятся из env-переменных!

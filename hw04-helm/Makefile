@@ -51,10 +51,22 @@ docker-push: login
 NAMESPACE := otus 
 DRY_RUN   := 
 #--dry-run
-CHARTS = app
 
-$(CHARTS):
-	helm upgrade --install $@ -n $(NAMESPACE) \
-		./charts/$@ \
-		--values charts/$@/values.yaml \
-		$(DRY_RUN)
+helm-values:
+	@ /bin/bash ./setup.sh
+
+helm-install-all: \
+	helm-values \
+	helm-install-db \
+	helm-install-app 
+
+helm-install-app:
+	helm upgrade --install app -n $(NAMESPACE) $(DRY_RUN) \
+		./charts/app \
+		--values charts/app/values.yaml \
+		--values charts/db/values.yaml
+
+helm-install-db:
+	helm install db -n $(NAMESPACE) $(DRY_RUN) \
+		oci://registry-1.docker.io/bitnamicharts/postgresql \
+		--values charts/db/values.yaml

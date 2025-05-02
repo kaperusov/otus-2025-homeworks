@@ -104,10 +104,16 @@ autoscaling:
   # targetMemoryUtilizationPercentage: 80
 
 
-secrets:
-  db:
-    username: "user"
-    password: "qwe"
+global:
+  postgresql:
+    auth:
+      username: ""
+      password: ""
+      database: ""
+    service:
+      name: db-postgesql
+      ports:
+        potstgresql: ""
 
 # Additional volumes on the output Deployment definition.
 volumes:
