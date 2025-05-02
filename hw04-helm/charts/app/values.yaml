@@ -111,7 +111,7 @@ global:
       password: ""
       database: ""
     service:
-      name: db-postgesql
+      name: db-postgresql
       ports:
         potstgresql: ""
 
