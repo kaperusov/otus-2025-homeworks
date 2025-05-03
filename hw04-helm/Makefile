@@ -1,6 +1,6 @@
 
 APP_NAME        ?= otus-hw04-user-crud
-APP_VERSION     ?= 2025.05.01
+APP_VERSION     ?= 2025.05.03
 APP_PORT        ?= 8080
 
 DOCKER_REGISTRY ?= kaperusov

@@ -41,6 +41,36 @@ info:
   title: 'OTUS Homework #04'
   version: "1.0"
 paths:
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Отвеает, жив ли контейнер
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Сервис жив
+        "500":
+          description: Ошибка сервера
+      summary: Проверка состояния
+      tags:
+      - Service state
+  /ready:
+    get:
+      consumes:
+      - application/json
+      description: Отвечает, готов ли контейнер принимать трафик
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Сервис готов к работе
+        "500":
+          description: Ошибка сервера
+      summary: Проверка готовности к работе
+      tags:
+      - Service state
   /users:
     post:
       consumes:
