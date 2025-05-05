@@ -1,4 +1,4 @@
-basePath: /api/v1
+basePath: /
 definitions:
   models.ErrorResponse:
     properties:
@@ -41,37 +41,7 @@ info:
   title: 'OTUS Homework #04'
   version: "1.0"
 paths:
-  /health:
-    get:
-      consumes:
-      - application/json
-      description: Отвеает, жив ли контейнер
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Сервис жив
-        "500":
-          description: Ошибка сервера
-      summary: Проверка состояния
-      tags:
-      - Service state
-  /ready:
-    get:
-      consumes:
-      - application/json
-      description: Отвечает, готов ли контейнер принимать трафик
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Сервис готов к работе
-        "500":
-          description: Ошибка сервера
-      summary: Проверка готовности к работе
-      tags:
-      - Service state
-  /users:
+  /api/v1/users:
     post:
       consumes:
       - application/json
@@ -101,7 +71,7 @@ paths:
       summary: Создать нового пользователя
       tags:
       - Пользователи
-  /users/{id}:
+  /api/v1/users/{id}:
     delete:
       description: Удаляет пользователя по его идентификатору
       parameters:
@@ -192,6 +162,36 @@ paths:
       summary: Обновить данные пользователя
       tags:
       - Пользователи
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Отвеает, жив ли контейнер
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Сервис жив
+        "500":
+          description: Ошибка сервера
+      summary: Проверка состояния
+      tags:
+      - Service state
+  /ready:
+    get:
+      consumes:
+      - application/json
+      description: Отвечает, готов ли контейнер принимать трафик
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Сервис готов к работе
+        "500":
+          description: Ошибка сервера
+      summary: Проверка готовности к работе
+      tags:
+      - Service state
 schemes:
 - http
 swagger: "2.0"

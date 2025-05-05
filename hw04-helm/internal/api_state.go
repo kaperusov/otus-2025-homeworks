@@ -52,7 +52,8 @@ func Ready(w http.ResponseWriter, r *http.Request) {
 
 	response := map[string]string{"status": "READY"}
 
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("healthHandler: failed to encode JSON response: %v", err)
+	}
 }

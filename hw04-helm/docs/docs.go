@@ -24,53 +24,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/health": {
-            "get": {
-                "description": "Отвеает, жив ли контейнер",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Service state"
-                ],
-                "summary": "Проверка состояния",
-                "responses": {
-                    "200": {
-                        "description": "Сервис жив"
-                    },
-                    "500": {
-                        "description": "Ошибка сервера"
-                    }
-                }
-            }
-        },
-        "/ready": {
-            "get": {
-                "description": "Отвечает, готов ли контейнер принимать трафик",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Service state"
-                ],
-                "summary": "Проверка готовности к работе",
-                "responses": {
-                    "200": {
-                        "description": "Сервис готов к работе"
-                    },
-                    "500": {
-                        "description": "Ошибка сервера"
-                    }
-                }
-            }
-        },
-        "/users": {
+        "/api/v1/users": {
             "post": {
                 "description": "Создает нового пользователя в системе",
                 "consumes": [
@@ -116,7 +70,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/{id}": {
+        "/api/v1/users/{id}": {
             "get": {
                 "description": "Возвращает информацию о пользователе по его идентификатору",
                 "produces": [
@@ -252,6 +206,52 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/health": {
+            "get": {
+                "description": "Отвеает, жив ли контейнер",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Service state"
+                ],
+                "summary": "Проверка состояния",
+                "responses": {
+                    "200": {
+                        "description": "Сервис жив"
+                    },
+                    "500": {
+                        "description": "Ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/ready": {
+            "get": {
+                "description": "Отвечает, готов ли контейнер принимать трафик",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Service state"
+                ],
+                "summary": "Проверка готовности к работе",
+                "responses": {
+                    "200": {
+                        "description": "Сервис готов к работе"
+                    },
+                    "500": {
+                        "description": "Ошибка сервера"
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -304,7 +304,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
-	BasePath:         "/api/v1",
+	BasePath:         "/",
 	Schemes:          []string{"http"},
 	Title:            "OTUS Homework #04",
 	Description:      "CRUD User app",

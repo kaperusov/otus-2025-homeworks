@@ -60,8 +60,8 @@ var routes = Routes{
 	// Web page
 	Route{"Index", "GET", "/", Index},
 	// State handlers
-	Route{"Health", "GET", "/api/v1/health", Health},
-	Route{"Ready", "GET", "/api/v1/ready", Ready},
+	Route{"Health", "GET", "/health", Health},
+	Route{"Ready", "GET", "/ready", Ready},
 	// API handlers
 	Route{"CreateUser", "POST", "/api/v1/users", CreateUser},
 	Route{"DeleteUser", "DELETE", "/api/v1/users/{userId}", DeleteUser},

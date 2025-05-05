@@ -31,8 +31,8 @@ import (
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host localhost:8080
-// @BasePath /api/v1
+// @host arch.homework
+// @BasePath /
 // @schemes http
 func main() {
 	configPath := flag.String("config", "application.yaml", "Path to config file")
