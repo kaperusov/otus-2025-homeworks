@@ -11,10 +11,8 @@ package swagger
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"otus/crud/internal/models"
 
@@ -39,7 +37,7 @@ func SetDB(database *gorm.DB) {
 // @Success 200 {object} models.User "Успешно создан"
 // @Failure 400 {object} models.ErrorResponse "Неверные входные данные"
 // @Failure 500 {object} models.ErrorResponse "Ошибка сервера"
-// @Router /users [post]
+// @Router /api/v1/users [post]
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -51,6 +49,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	//Создание записи
 	db.Create(&user)
+	log.Printf("Created user: %+v\n", user)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		log.Printf("Failed to encode response: %v", err)
@@ -68,7 +67,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} models.User "Успешный запрос"
 // @Failure 404 {object} models.ErrorResponse "Пользователь не найден"
 // @Failure 500 {object} models.ErrorResponse "Ошибка сервера"
-// @Router /users/{id} [get]
+// @Router /api/v1/users/{id} [get]
 func FindUserById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -78,7 +77,7 @@ func FindUserById(w http.ResponseWriter, r *http.Request) {
 	// Чтение записи
 	var user models.User
 	db.First(&user, "id = ?", id)
-	fmt.Printf("User: %+v\n", user)
+	log.Printf("Founded user: %+v\n", user)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		log.Printf("Failed to encode response: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -98,30 +97,27 @@ func FindUserById(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {object} models.ErrorResponse "Неверные входные данные"
 // @Failure 404 {object} models.ErrorResponse "Пользователь не найден"
 // @Failure 500 {object} models.ErrorResponse "Ошибка сервера"
-// @Router /users/{id} [put]
+// @Router /api/v1/users/{id} [put]
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	vars := mux.Vars(r)
 	id := vars["userId"]
 
-	var user models.User
+	var user interface{}
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	user.Id, err = strconv.ParseInt(id, 10, 64)
-	if err != nil {
-		// ... handle error
-		panic(err)
-	}
-
 	// Редактирование записи
-	db.Save(&user)
-	fmt.Printf("User: %+v\n", user)
-	if err := json.NewEncoder(w).Encode(user); err != nil {
+	db.Model(&models.User{}).Where("id = ?", id).Updates(user)
+
+	var updated models.User
+	db.First(&updated, "id = ?", id)
+	log.Printf("Updated user: %+v\n", updated)
+	if err := json.NewEncoder(w).Encode(updated); err != nil {
 		log.Printf("Failed to encode response: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -137,7 +133,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} models.StatusResponse "Успешно удален"
 // @Failure 404 {object} models.ErrorResponse "Пользователь не найден"
 // @Failure 500 {object} models.ErrorResponse "Ошибка сервера"
-// @Router /users/{id} [delete]
+// @Router /api/v1/users/{id} [delete]
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -147,7 +143,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	// Удаление записи
 	var user models.User
 	db.Delete(&user, "id = ?", id)
-	fmt.Printf("User: %+v\n", user)
+	log.Printf("Deleted user: %+v\n", user)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		log.Printf("Failed to encode response: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
