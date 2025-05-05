@@ -61,12 +61,12 @@ helm-install-all: \
 	helm-install-app 
 
 helm-install-app:
-	helm upgrade --install app -n $(NAMESPACE) $(DRY_RUN) \
+	helm upgrade --install app --create-namespace --namespace $(NAMESPACE) $(DRY_RUN) \
 		./charts/app \
 		--values charts/app/values.yaml \
 		--values charts/db/values.yaml
 
 helm-install-db:
-	helm install db -n $(NAMESPACE) $(DRY_RUN) \
+	helm install db --create-namespace --namespace $(NAMESPACE) $(DRY_RUN) \
 		oci://registry-1.docker.io/bitnamicharts/postgresql \
 		--values charts/db/values.yaml
