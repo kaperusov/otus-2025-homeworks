@@ -69,7 +69,7 @@ make helm-install-all
 
 ### Postman Collection
 
-hw04-helm/REST API basics - CRUD.postman_collection.json
+[JSON файл с коллекцией запросов для Postman](REST%20API%20basics%20-%20CRUD.postman_collection.json)
 
 ![result](./Postman-run-collection.png)
 
