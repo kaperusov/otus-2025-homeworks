@@ -1,0 +1,190 @@
+{
+	"id": "7ce1a3d8-8170-41e6-9b4d-e25bad927baf",
+	"name": "REST API basics: CRUD",
+	"timestamp": "2025-05-05T09:20:47.574Z",
+	"collection_id": "296292-016c9fcc-a3c4-4d3b-a7c4-1624e88da61d",
+	"folder_id": 0,
+	"environment_id": "296292-b8903966-f1f5-488a-8d4d-0ac340e08de9",
+	"totalPass": 4,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2025-05-05T09:20:46.846Z",
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "768e37d1-98dc-4fed-9944-3ed9c9f5c917",
+			"name": "Healtheck service",
+			"url": "http://arch.homework/health",
+			"time": 11,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				11
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "d24db9b3-f659-429d-ab58-1dbae9166230",
+			"name": "Get Ready",
+			"url": "http://arch.homework/ready",
+			"time": 3,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				3
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "bac59617-b7d9-4686-891d-bafa207981a9",
+			"name": "Post user",
+			"url": "http://arch.homework/api/v1/users",
+			"time": 5,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Successful POST request": true
+			},
+			"testPassFailCounts": {
+				"Successful POST request": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				5
+			],
+			"allTests": [
+				{
+					"Successful POST request": true
+				}
+			]
+		},
+		{
+			"id": "3679c8d6-f066-4bcd-9c31-0ed2c4445a9d",
+			"name": "Get user",
+			"url": "http://arch.homework/api/v1/users/5",
+			"time": 3,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				3
+			],
+			"allTests": [
+				{
+					"Status code is 200": true
+				}
+			]
+		},
+		{
+			"id": "b398d215-99a7-4f35-ad07-861420e0926a",
+			"name": "Update user",
+			"url": "http://arch.homework/api/v1/users/5",
+			"time": 6,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Successful PUT request": true
+			},
+			"testPassFailCounts": {
+				"Successful PUT request": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				6
+			],
+			"allTests": [
+				{
+					"Successful PUT request": true
+				}
+			]
+		},
+		{
+			"id": "0e31e952-b887-446b-9ee4-0532b7dbcae5",
+			"name": "Delete user",
+			"url": "http://arch.homework/api/v1/users/5",
+			"time": 5,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Successful DELETE request": true
+			},
+			"testPassFailCounts": {
+				"Successful DELETE request": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				5
+			],
+			"allTests": [
+				{
+					"Successful DELETE request": true
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 33,
+	"collection": {
+		"requests": [
+			{
+				"id": "768e37d1-98dc-4fed-9944-3ed9c9f5c917",
+				"method": "GET"
+			},
+			{
+				"id": "d24db9b3-f659-429d-ab58-1dbae9166230",
+				"method": "GET"
+			},
+			{
+				"id": "bac59617-b7d9-4686-891d-bafa207981a9",
+				"method": "POST"
+			},
+			{
+				"id": "3679c8d6-f066-4bcd-9c31-0ed2c4445a9d",
+				"method": "GET"
+			},
+			{
+				"id": "b398d215-99a7-4f35-ad07-861420e0926a",
+				"method": "PUT"
+			},
+			{
+				"id": "0e31e952-b887-446b-9ee4-0532b7dbcae5",
+				"method": "DELETE"
+			}
+		]
+	}
+}

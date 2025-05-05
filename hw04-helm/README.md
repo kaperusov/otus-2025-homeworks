@@ -16,7 +16,9 @@
 4. Затем, через helm добавил в свой k8s кластер postgresql из репозитория bitnamicharts
 ([ссылка на ArtifactHUB](https://artifacthub.io/packages/helm/bitnami/postgresql))
 
-5. Настройки приложения для подключния к БД задаются в файле `application.yaml` (`hw04-helm/charts/app/templates/configmap.yaml`), 
+5. Начальные миграции приложение делает самостоятельно при старте
+
+6. Настройки приложения для подключния к БД задаются в файле `application.yaml` (`hw04-helm/charts/app/templates/configmap.yaml`), 
 а логин и рароль в переменных окружения, которые формируется в secrets: `hw04-helm/charts/app/templates/secret.yaml`
 
 Для их чтения можно воспользоваться командой:
@@ -25,14 +27,17 @@ kubectl get secret -n otus db-secret -o jsonpath="{.data.DB_USERNAME}" | base64 
 kubectl get secret -n otus db-secret -o jsonpath="{.data.DB_PASSWORD}" | base64 -d
 ```
 
-Чтобы механизмы инициализации кредов в приложении и с Postgres сделать схожими я взял часть структуры `values.yaml` 
-из чарта Postgres и выынес его в отдельный файл `hw04-helm/charts/db/values.yaml`
+Чтобы механизмы инициализации кредов в приложении и с Postgres сделать схожими 
+я взял часть структуры `values.yaml` из чарта Postgres и вынес его в отдельный
+файл `hw04-helm/charts/db/values.yaml`
 
-Но так как, я считаю хранение такого рада файлов в git неправильным, то в репозитории лежат лишь sample файлы: 
+Но так как, я считаю хранение такого рада файлов в git неправильным, то в репозитории
+лежат лишь sample файлы: 
  - values.yaml.sample  
- - application.sample.yaml (этот файл - пример конфигураии, который можно использовать для локального запуска приложения)
+ - application.sample.yaml (этот файл - пример конфигурации, который можно использовать для локального запуска приложения)
 
-Получить рабочие конфигурации можно или руками, скопировав файлы и отредактировав их, или воспользоваться скриптом `setup.sh`.
+Получить рабочие конфигурации можно или руками, скопировав файлы и отредактировав их,
+или воспользоваться скриптом `setup.sh`.
 
 Для инсталляции приложения нужно выполнить следующие команды: 
 ```bash
@@ -61,6 +66,20 @@ make helm-install-all
 ```
 
 ## Проверка работоспособности
+
+### Postman Collection
+
+hw04-helm/REST API basics - CRUD.postman_collection.json
+
+![result](./Postman-run-collection.png)
+
+[Результаты выполнения тестов эккспортированные в JSON](REST%20API%20basics%20-%20CRUD.postman_test_run.json)
+
+### Swagger UI
+
+Также, приложение поддерживает работу с API через встроенный Swagger UI: 
+
+http://arch.homework/swagger-ui/index.html
 
 
 
