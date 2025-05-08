@@ -10,14 +10,14 @@
 package swagger
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger"
 
 	_ "otus/crud/docs"
 
-	httpSwagger "github.com/swaggo/http-swagger"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Route struct {
@@ -43,8 +43,14 @@ func NewRouter() *mux.Router {
 			Handler(handler)
 	}
 
-	// Добавляем роут для Swagger UI
+	router.Use(PrometheusMiddleware)
+
+	// Swagger UI
 	router.PathPrefix("/swagger-ui/").Handler(httpSwagger.WrapHandler)
+	// Prometheus endpoint
+	router.Path("/prometheus").Handler(promhttp.Handler())
+	// Serving static files
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
 
 	// Сервис готов к работе
 	isReady.Store(true)
@@ -52,13 +58,7 @@ func NewRouter() *mux.Router {
 	return router
 }
 
-func Index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World!")
-}
-
 var routes = Routes{
-	// Web page
-	Route{"Index", "GET", "/", Index},
 	// State handlers
 	Route{"Health", "GET", "/health", Health},
 	Route{"Ready", "GET", "/ready", Ready},

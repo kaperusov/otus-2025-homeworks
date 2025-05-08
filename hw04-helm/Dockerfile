@@ -23,6 +23,7 @@ WORKDIR /opt
 RUN apk add --no-cache tzdata
 
 COPY --from=builder /app/server /opt/server
+COPY ./static /opt/static 
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
