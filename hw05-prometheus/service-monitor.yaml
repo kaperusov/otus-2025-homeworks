@@ -1,0 +1,22 @@
+# app-service-monitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: metrics-app-monitor
+  namespace: otus
+  labels:
+    app: metrics-app-monitor
+
+spec:
+  selector:
+    matchLabels:
+      name: app
+  namespaceSelector:
+    matchNames:
+      - otus
+  endpoints:
+  - port: http
+    scrapeTimeout: 30s
+    path: /prometheus     
+    honorLabels: true
+    scheme: http
