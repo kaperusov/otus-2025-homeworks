@@ -4,23 +4,57 @@
 
 ## Краткое описание выполненной работы: 
 
-1. Добавлены метриками в формате Prometheus [в мой проект](../hw04-helm/internal/prometheus.go)
 
-2. Проверка, что необходимый metrics-server addon для minikube включен:
+### 1. Установка приложения 
+
+Используется helm из предыдущего ДЗ (hw04-helm), и новый docker образ (kaperusov/otus-app-user-crud:hw05) 
+в котором [добавлены метрики prometheus](../hw04-helm/internal/prometheus.go):
+
+```bash
+helm upgrade --install app --create-namespace --namespace otus \
+  ../hw04-helm/charts/app/ \
+  --values charts/app/values.yaml
+```
+
+Метрики доступны по адресу:
+
+  http://arch.homework/prometheus
+  
+
+### 2. Установка Prometheus и Grafana
+
+Для начала надо проверить, что необходимый metrics-server addon для minikube включен:
 ```bash
 minikube addons list
-
-# if needed
+```
+При необходимости включить: 
+```bash
 minikube addons enable metrics-server
 ```
 
-
-
-2. Установка Prometheus и Grahana:
-
+Для Prometheus и Grahana, я воспользовался helm чартом, который устанавливает весь стек: Prometheus + ServiceMetric (оператор) + Grafana
 ```bash
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update 
 helm -n otus install stack prometheus-community/kube-prometheus-stack -f prometheus/values.yaml
+```
+
+Для связи метрик приложения к Prometheus необходимо создать ServiceMonitor, 
+для этого применяем следующий манифест:
+```bash
+kubectl apply -f service-monitor.yaml
+```
+
+Для входа в UI Prometheus:
+```bash
+export PROM=$(kubectl get pods --namespace otus -l "app.kubernetes.io/name=prometheus,app.kubernetes.io/instance=stack-kube-prometheus-stac-prometheus" -o jsonpath="{.items[0].metadata.name}")
+kubectl --namespace otus port-forward $PROM --address 0.0.0.0 9090
+```
+
+Для входа в UI Grahana:
+```bash
+export GRAF=$(kubectl get pods --namespace otus -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=stack" -o jsonpath="{.items[0].metadata.name}")
+kubectl --namespace otus port-forward $GRAF --address 0.0.0.0 3000
 ```
 
 Пароль к Grahana: 
@@ -28,36 +62,41 @@ helm -n otus install stack prometheus-community/kube-prometheus-stack -f prometh
 kubectl get secret --namespace otus stack-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
 ```
 
-Для передачи метрик из приложения в Prometheus в Kubernetes необходим специальный ресурс: `ServiceMetric` 
-Но для его работы требоваться установка kube-prometheus-stack (включает оператор)
-```bash
-helm install prometheus prometheus-community/kube-prometheus-stack \
-  --namespace otus \
-  --create-namespace
+
+### 3. Генерим трафик: 
+
+    hey -z 5m -q 5 -m GET -H "Accept: text/html" http://arch.homework/api/v1/users/1
+
+
+### 4. PromQL запросы 
+
+1. Расчёт Latency (response time) с квантилями по 0.5, 0.95, 0.99, max
+
+```promql
+# Медиана (50-й перцентиль)
+histogram_quantile(0.5, sum(rate(http_response_time_seconds_bucket{path=~"/api/v1/.*"}[1m])) by (le, method, path))
+
+# 95-й перцентиль
+histogram_quantile(0.95, sum(rate(http_response_time_seconds_bucket{path=~"/api/v1/.*"}[1m])) by (le, method, path))
+
+# 99-й перцентиль
+histogram_quantile(0.99, sum(rate(http_response_time_seconds_bucket{path=~"/api/v1/.*"}[1m])) by (le, method, path))
+
+# Максимальная задержка
+histogram_quantile(1.0, sum(rate(http_response_time_seconds_bucket{path=~"/api/v1/.*"}[1m])) by (le, method, path))
 ```
 
-Проверка
-```bash
-kubectl -n otus get crd | grep servicemonitors
+
+2. RPS (Requests Per Second) - средняя скорость роста метрики за определённый промежуток времени
+
+```promql
+rate(http_response_time_seconds_count{path=~"/api/v1/.*"}[1m])
 ```
 
-После чего необходимо применить манифест `service-monitor.yaml`:
-```bash
-kubectl apply -f service-monitor.yaml
+3. Error Rate - количество 500ых ответов
+
+```promql
+rate(http_requests_total{status_code=~"5.."}[1m])
 ```
 
-Для входа в UI
-```bash
-export POD_NAME=$(kubectl get pods --namespace otus -l "app.kubernetes.io/name=prometheus,app.kubernetes.io/instance=prom" -o jsonpath="{.items[0].metadata.name}")
-kubectl --namespace otus port-forward $POD_NAME --address 0.0.0.0 9090
-```
-
-Метрики приложения:
-
-    http://localhost:8080/prometheus
-
-
-
-5. Генерим трафик: 
-
-    hey -z 5m -q 5 -m GET -H "Accept: text/html" http://127.0.0.1:8080
+Dashboard для Grafana по этим запросам в файле [grafana/01-api-dashboard.json](grafana/01-api-dashboard.json)
