@@ -1,0 +1,4 @@
+datasource:
+  host: db
+  name: users
+  port: 5432
