@@ -100,3 +100,22 @@ rate(http_requests_total{status_code=~"5.."}[1m])
 ```
 
 Dashboard для Grafana по этим запросам в файле [grafana/01-api-dashboard.json](grafana/01-api-dashboard.json)
+
+
+
+Потребление подами приолжения CPU
+sum(container_memory_working_set_bytes{namespace="otus", pod=~"app.*"}) by (pod)
+
+rate(container_cpu_usage_seconds_total{namespace="otus"}[1m])
+
+
+общая загрузка CPU всего namespace в процентах от доступных ядер
+
+  sum (rate(container_cpu_usage_seconds_total{namespace="otus"}[1m])) / sum (machine_cpu_cores) * 100
+
+Показывает использование CPU каждым подом в отдельности (в ядрах/сек)
+
+  sum (rate (container_cpu_usage_seconds_total{pod=~"app-.*"}[1m])) by (pod_name)
+
+  
+  sum (rate (container_cpu_usage_seconds_total{namespace="otus"}[1m])) by (pod_name)
