@@ -14,6 +14,7 @@ helm-install-all: \
 helm-install-app:
 	helm upgrade --install app --create-namespace --namespace $(NAMESPACE) $(DRY_RUN) \
 		../hw04-helm/charts/app/ \
+		--values ../hw04-helm/charts/db/values.yaml \
 		--values charts/app/values.yaml
 		
 
