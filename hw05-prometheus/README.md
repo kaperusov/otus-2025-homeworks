@@ -7,18 +7,18 @@
 
 ### 1. Установка приложения 
 
-Используется helm из предыдущего ДЗ (hw04-helm), и новый docker образ (kaperusov/otus-app-user-crud:hw05) 
+Используется helm из предыдущего ДЗ (../hw04-helm), и новый docker образ 
+(`--values charts/app/values.yaml` => [kaperusov/otus-app-user-crud:hw05](https://hub.docker.com/repository/docker/kaperusov/otus-app-user-crud/tags)),
 в котором [добавлены метрики prometheus](../hw04-helm/internal/prometheus.go):
 
 ```bash
 helm upgrade --install app --create-namespace --namespace otus \
-  ../hw04-helm/charts/app/ \
+           ../hw04-helm/charts/app/ \ 
+  --values ../hw04-helm/charts/db/values.yaml \
   --values charts/app/values.yaml
 ```
 
-Метрики доступны по адресу:
-
-  http://arch.homework/prometheus
+В результате, метрики приложения должны быть доступны по адресу: http://arch.homework/prometheus
   
 
 ### 2. Установка Prometheus и Grafana
@@ -65,10 +65,29 @@ kubectl get secret --namespace otus stack-grafana -o jsonpath="{.data.admin-pass
 
 ### 3. Генерим трафик: 
 
-    hey -z 5m -q 5 -m GET -H "Accept: text/html" http://arch.homework/api/v1/users/1
+Самый простой вариант, можно использовать консольное приложение `hey`, например: 
+
+  hey -z 5m -q 5 -m GET -H "Accept: text/html" http://arch.homework/api/v1/users/1
+
+Но я решил использовать ИИ для генерации [bash скрипта](./traffic.sh), 
+который на основе файла [Postman файла, из предыдущего задания,](../hw04-helm/REST%20API%20basics%20-%20CRUD.postman_test_run.json) с тестовыми запросами к API приложения, генерирует случайным образом запросы ко всем методам приложения в случайном порядке. 
+
+Запуск:
+  
+  ./traffic.sh
 
 
 ### 4. PromQL запросы 
+
+**Задание** 
+
+> Сделать дашборд в Графане, в котором были бы метрики с разбивкой по API методам:
+>
+> 1. Latency (response time) с квантилями по 0.5, 0.95, 0.99, max
+> 2. RPS
+> 3. Error Rate - количество 500ых ответов
+
+**Решение**
 
 1. Расчёт Latency (response time) с квантилями по 0.5, 0.95, 0.99, max
 
@@ -102,20 +121,68 @@ rate(http_requests_total{status_code=~"5.."}[1m])
 Dashboard для Grafana по этим запросам в файле [grafana/01-api-dashboard.json](grafana/01-api-dashboard.json)
 
 
+![result](./grafana/01-api-dashboard.png)
 
-Потребление подами приолжения CPU
-sum(container_memory_working_set_bytes{namespace="otus", pod=~"app.*"}) by (pod)
+---
 
-rate(container_cpu_usage_seconds_total{namespace="otus"}[1m])
+**Задание** 
+
+> Добавить в дашборд графики с метрикам в целом по сервису, взятые с nginx-ingress-controller:
+> 
+> 1. Latency (response time) с квантилями по 0.5, 0.95, 0.99, max
+> 2. RPS
+> 3. Error Rate - количество 500ых ответов
+
+**Решение**
+... 
 
 
-общая загрузка CPU всего namespace в процентах от доступных ядер
+---
 
-  sum (rate(container_cpu_usage_seconds_total{namespace="otus"}[1m])) / sum (machine_cpu_cores) * 100
+**Задание со звездочкой**
 
-Показывает использование CPU каждым подом в отдельности (в ядрах/сек)
+> Используя существующие системные метрики из кубернетеса, добавить на дашборд графики с метриками:
 
-  sum (rate (container_cpu_usage_seconds_total{pod=~"app-.*"}[1m])) by (pod_name)
+> 1. Потребление подами приложения памяти
+> 2. Потребление подами приолжения CPU
 
+
+**Решение**
+
+1. **Потребление подами приложения памяти**
+
+Запрос для отображения объёма оперативной памяти (RAM), который занимает процесс:
+
+  sum(process_resident_memory_bytes{namespace="otus", pod=~"app.*"}) by (pod)
+
+Здесь метрика `process_resident_memory_bytes`, предоставляется в Prometheus, библиотекой client_golang
+
+Запрос для отбражения лимита памяти, который который могут использовать контейнеры внутри каждого пода
+
+  sum(kube_pod_container_resource_limits{namespace="otus", pod=~"app.*", resource="memory"}) by (pod)
+
+Формула для отбражения запроса памяти приложением: 
+
+  sum(kube_pod_container_resource_requests{namespace="otus", pod=~"app.*", resource="memory"}) by (pod)
+
+2. **Потребление подами приолжения CPU**
+
+Формула для отображения процента загрузки CPU для конкретного процесса (моего приложения) 
   
-  sum (rate (container_cpu_usage_seconds_total{namespace="otus"}[1m])) by (pod_name)
+  sum(rate(process_cpu_seconds_total{namespace="otus", pod=~"app.*"}[1m])) / sum(machine_cpu_cores) * 100
+
+Здесь, метрика `process_cpu_seconds_total` предоставляется в Prometheus, так же библиотекой client_golang
+
+Также на график добавлена запрос, аналогичный поредыдущему, но с метрикой `container_cpu_usage_seconds_total`, 
+которая показывает CPU загрузку всех процессов в контейнере:
+
+  sum (rate(container_cpu_usage_seconds_total{namespace="otus", pod=~"app.*"}[1m])) / sum (machine_cpu_cores) * 100
+
++ Информация об ограниених CPU 
+
+  sum(kube_pod_container_resource_limits{namespace="otus", pod=~"app.*", resource="cpu"}) by (pod)
+
+
+
+Dashboard для Grafana по этим запросам в файле [grafana/03-cpu-memory-dashboard](./grafana/03-cpu-memory-dashboard.json)
+![result](./grafana/03-cpu-memory-dashboard.png)
