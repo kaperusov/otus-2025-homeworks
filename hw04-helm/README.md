@@ -19,7 +19,7 @@
 5. Начальные миграции приложение делает самостоятельно при старте
 
 6. Настройки приложения для подключния к БД задаются в файле `application.yaml` (`hw04-helm/charts/app/templates/configmap.yaml`), 
-а логин и рароль в переменных окружения, которые формируется в secrets: `hw04-helm/charts/app/templates/secret.yaml`
+а логин и пароль в переменных окружения, которые формируется в secrets: `hw04-helm/charts/app/templates/secret.yaml`
 
 Для их чтения можно воспользоваться командой:
 ```bash
