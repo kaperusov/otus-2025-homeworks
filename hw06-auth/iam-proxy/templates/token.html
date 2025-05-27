@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" class="login-pf">
+
+<head>
+    <title>JWT</title>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon.png') }}" />
+</head>
+
+<body>
+    <h1 style="padding: 0 2%">Here your JWT token:</h1>
+
+    <div style="width: 96%; padding: 30px 2%;">
+        <div id="toCopy" style="position: relative; word-break: break-all;">{{jwt_token}}</div>
+
+        <div style="padding: 30px 0;">
+            <button onclick="unsecuredCopyToClipboard()">Copy to clipboard</button>
+            <div id="copied" style="display: none">
+                <p>
+                    <img width="20px" src="{{ url_for('static', filename='img/copy.png') }}" />
+                    <em>Content copied to clipboard</em>
+                </p>
+            </div>
+        </div>
+
+        <p>Use it for authorize in <a href="{{swagger_url}}">srv swagger</a></p>
+
+        <p>Or go to UI <a href="/home">/home</a></p>
+    </div>
+
+    <div style="width: 96%; padding: 30px 2%;">
+        <div>Or use this <b>{{session_key}}</b> as param in Postman or cURL: <pre>?{{session_key}}={{session_id}}</pre></div>
+    </div>
+
+    <div style="width: 96%; padding: 30px 2%;">
+        <a href="/logout">Logout</a>
+    </div>
+
+</body>
+
+<script>
+    //
+    // The use of navigator.clipboard requires a secure origin.
+    // So if your dev environment is being served over HTTP, then the clipboard method won't be available.
+    //
+    // via. https://stackoverflow.com/questions/71873824/copy-text-to-clipboard-cannot-read-properties-of-undefined-reading-writetext
+    //
+    function unsecuredCopyToClipboard() {
+        let text = document.getElementById('toCopy').innerHTML;
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            document.getElementById('copied').style.display = 'inline';
+        } catch (err) {
+            console.error('Unable to copy to clipboard', err);
+        }
+        document.body.removeChild(textArea);
+    }
+</script>
+</html>
