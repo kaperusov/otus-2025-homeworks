@@ -1,0 +1,619 @@
+{
+	"info": {
+		"_postman_id": "ad7f0ecd-91d3-457d-94bd-0ae149dc1271",
+		"name": "REST API hw06",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "296292",
+		"_collection_link": "https://smk-systems.postman.co/workspace/7f775539-e843-4229-81d8-7102ff5a9832/collection/296292-ad7f0ecd-91d3-457d-94bd-0ae149dc1271?action=share&source=collection_link&creator=296292"
+	},
+	"item": [
+		{
+			"name": "Health check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/health",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Ready check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/ready",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"ready"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register user 1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 201) {",
+							"    const responseData = pm.response.json();",
+							"    //console.log(\"responseData:\", responseData);",
+							"    const username = responseData.user.username;",
+							"    const id = responseData.user.id",
+							"    pm.collectionVariables.set(\"user_1_username\", username);",
+							"    pm.collectionVariables.set(\"user_1_id\", id);",
+							"    console.log(\"Created user 1 with username:\", username);",
+							"    console.log(\"ID user 1:\", id);",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "{{$randomUserName}}",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "{{$randomEmail}}",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "123",
+							"type": "text"
+						},
+						{
+							"key": "firstName",
+							"value": "{{$randomUserName}}",
+							"type": "text"
+						},
+						{
+							"key": "lastName",
+							"value": "{{$randomUserName}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/register",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Try updating user 1",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "firstName",
+							"value": "user_1",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "{{$randomEmail}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/profile/{{user_1_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"profile",
+						"{{user_1_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Authenticate user 1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    const responseData = pm.response.json();",
+							"    const accessToken = responseData.access_token;",
+							"    pm.collectionVariables.set(\"user_1_access_token\", accessToken);",
+							"    console.log(\"User 1 access_token:\", accessToken);",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "{{user_1_username}}",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "123",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "My profile",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{user_1_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/auth/profile/me",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"profile",
+						"me"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update user 1 with success",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{user_1_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "firstName",
+							"value": "user_1",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "{{$randomEmail}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/profile/{{user_1_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"profile",
+						"{{user_1_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Profile by ID of user 1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    const responseData = pm.response.json();",
+							"    const firstName = responseData.firstName;",
+							"    console.log(\"User 1 firstName\", firstName)",
+							"}",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{user_1_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/auth/profile/{{user_1_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"profile",
+						"{{user_1_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout user 1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    pm.collectionVariables.set(\"user_1_access_token\", null);",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/logout",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register user 2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 201) {",
+							"    const responseData = pm.response.json();",
+							"    //console.log(\"responseData:\", responseData);",
+							"    const username = responseData.user.username;",
+							"    const id = responseData.user.id",
+							"    pm.collectionVariables.set(\"user_2_username\", username);",
+							"    pm.collectionVariables.set(\"user_2_id\", id);",
+							"    console.log(\"Created user 2 with username:\", username);",
+							"    console.log(\"ID user 2:\", id);",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "{{$randomUserName}}",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "{{$randomEmail}}",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "222",
+							"type": "text"
+						},
+						{
+							"key": "firstName",
+							"value": "{{$randomUserName}}",
+							"type": "text"
+						},
+						{
+							"key": "lastName",
+							"value": "{{$randomUserName}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/register",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Authenticate user 2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    const responseData = pm.response.json();",
+							"    const accessToken = responseData.access_token;",
+							"    pm.collectionVariables.set(\"user_2_access_token\", accessToken);",
+							"    console.log(\"User 2 access_token:\", accessToken);",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "{{user_2_username}}",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "222",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Try get user 1 profile",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{user_2_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/auth/profile/{{user_1_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"profile",
+						"{{user_1_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Try updating user 1 by user 2",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{user_2_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "firstName",
+							"value": "user_2",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/profile/{{user_1_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"profile",
+						"{{user_1_id}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5000",
+			"type": "default"
+		},
+		{
+			"key": "user_1_access_token",
+			"value": ""
+		},
+		{
+			"key": "user_1_username",
+			"value": ""
+		},
+		{
+			"key": "user_1_id",
+			"value": ""
+		},
+		{
+			"key": "user_2_access_token",
+			"value": ""
+		},
+		{
+			"key": "user_2_username",
+			"value": ""
+		},
+		{
+			"key": "user_2_id",
+			"value": ""
+		},
+		{
+			"key": "user_1_firstName: ",
+			"value": ""
+		}
+	]
+}
