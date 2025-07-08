@@ -1,5 +1,7 @@
 logs/
 config.ini
+.env
 .idea/
 __pycache__/
 venv/
+.venv/
