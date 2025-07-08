@@ -1,5 +1,9 @@
 from flask import current_app
-from keycloak import KeycloakOpenID, KeycloakAdmin
+try:
+    from keycloak import KeycloakOpenID, KeycloakAdmin
+except ImportError:
+    from keycloak.keycloak_openid import KeycloakOpenID
+    from keycloak.keycloak_admin import KeycloakAdmin
 import requests
 from requests import RequestException
 

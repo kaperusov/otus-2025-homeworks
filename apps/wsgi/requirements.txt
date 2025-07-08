@@ -27,7 +27,6 @@ idna==3.4
 itsdangerous==2.1.2
 Jinja2==3.1.2
 jwcrypto==1.5.6
-keycloak==3.1.5
 keycloak-client==0.15.4
 MarkupSafe==2.1.1
 multidict==6.0.4
