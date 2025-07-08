@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-configmap
+data: 
+  config.ini: |-
+    [GENERAL]
+    debug_mode = False
+    host = 0.0.0.0
+    port = 5000
+
+    ui_url = http://ui:80
+    backend_url = http://app:8000
+    additional_logout_path = /openid-connect-auth/logout
+    swagger_url = http://app:8000/swagger-ui/index.html
+    redirect_url = /token
+
+    [KEYCLOAK]
+    url = {{ .Values.keycloak.url }}
+    protocol = {{ .Values.keycloak.protocol }}
+    realm = {{ .Values.keycloak.realm }}
+    client_id = {{ .Values.keycloak.clientId }}
+    client_secret = {{ .Values.keycloak.clientSecret }}
+    admin_username = {{ .Values.keycloak.adminUsername }}
+    admin_password = {{ .Values.keycloak.adminPassword }}
+
+    [SECURITY]
+    use_ssl = {{ .Values.security.use_ssl }}
+    cert_file = {{ .Values.security.cert_file }}
+    token_expire_hours = {{ .Values.security.token_expire_hours | default 24 }}
+
+    [LOGGING]
+    level = DEBUG
+    save_file = False
+    dir = logs
+    file = /var/log/api-gateway.log

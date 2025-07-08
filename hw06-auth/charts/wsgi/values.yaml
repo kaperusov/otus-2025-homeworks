@@ -1,4 +1,4 @@
-# Default values for iam.
+# Default values for wsgi.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -7,11 +7,11 @@ replicaCount: 1
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
-  repository: kaperusov/iam-proxy
+  repository: kaperusov/wsgi
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "0.1.1"
+  tag: "2.0.3"
 
 # This is for the secretes for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
@@ -105,33 +105,33 @@ autoscaling:
 
 # Additional volumes on the output Deployment definition.
 volumes: 
-- name: iam-config-volume
+- name: wsgi-config-volume
   configMap:
-    name: iam-configmap
+    name: wsgi-configmap
     items:
     - key: config.ini
       path: config.ini
 
 # Additional volumeMounts on the output Deployment definition.
 volumeMounts: 
-- name: iam-config-volume
+- name: wsgi-config-volume
   mountPath: "/app/config.ini"
   subPath: config.ini
   readOnly: true
 
-
-
-tls:
-  enabled: false
+security:
+  use_ssl: false
   cert_file: root.crt
+  token_expire_hours: 24
 
 keycloak:
-  #url: http://kc-keycloak.otus.svc.cluster.local
   url: http://kc-keycloak
   protocol: openid-connect
   realm: master
-  clientId: otus
-  clientSecret: ZIp4xoUACtYjpqpkQwkzjCGEIuyzgZ59
+  clientId: 
+  clientSecret: 
+  adminUsername: 
+  adminPassword: 
 
 nodeSelector: {}
 
