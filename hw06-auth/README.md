@@ -67,14 +67,18 @@ keycloak:
 ```
 
 
-
+После чего выполнить инсталяцию приложения:
 ```bash
 helm -n otus upgrade --install wsgi charts/wsgi/ \
     --values charts/wsgi/values.yaml \
     --values charts/wsgi/values-private-data.yaml
 ```
 
+Для запуска тестового сценария из ДЗ нужно выполнить следующую команду: 
 
+```bash
+newman run postman_collection.json
+```
 
 
 
