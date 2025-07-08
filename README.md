@@ -9,3 +9,7 @@
  - 11. [Базовые сущности Кubernetes: ReplicaSet, Deployment, Service, Ingress](hw03-kube/README.md)
 
  - 14. [Работа с Helm-ом](hw04-helm/README.md)
+
+ - 17. [Prometheus. Grafana](hw05-prometheus/README.md)
+
+ - 19. [Backend for frontends. Apigateway](hw06-auth/README.md)
