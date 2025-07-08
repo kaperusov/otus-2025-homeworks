@@ -27,6 +27,43 @@ func SetDB(database *gorm.DB) {
 	db = database
 }
 
+// GetAllUsers godoc
+// @Summary Получить список пользователей
+// @Description Запрос на получение списка пользователей
+// @Tags Пользователи
+// @Accept json
+// @Produce json
+// @Success 200 {object} []models.User "Список пользователей"
+// @Failure 400 {object} models.ErrorResponse "Неверные входные данные"
+// @Failure 500 {object} models.ErrorResponse "Ошибка сервера"
+// @Router /api/v1/users [get]
+func GetAllUsers(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	var users []models.User
+	result := db.Find(&users)
+	if result.Error != nil {
+		log.Printf("Database error: %v", result.Error)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(models.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to fetch users from database",
+		})
+		return
+	}
+
+	log.Printf("Found %d user(s)\n", result.RowsAffected)
+
+	if err := json.NewEncoder(w).Encode(users); err != nil {
+		log.Printf("Failed to encode response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(models.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to encode response",
+		})
+	}
+}
+
 // CreateUser godoc
 // @Summary Создать нового пользователя
 // @Description Создает нового пользователя в системе

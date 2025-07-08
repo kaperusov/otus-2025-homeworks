@@ -47,7 +47,7 @@ func main() {
 	}
 	srv.SetDB(db.DB)
 
-	log.Printf("Server started")
+	log.Printf("Server started at :8080")
 
 	router := srv.NewRouter()
 

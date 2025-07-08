@@ -16,6 +16,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 
 	_ "otus/crud/docs"
+	"otus/crud/internal/config"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -52,6 +53,8 @@ func NewRouter() *mux.Router {
 	// Serving static files
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
 
+	config.EnableCORS(router)
+
 	// Сервис готов к работе
 	isReady.Store(true)
 
@@ -63,6 +66,7 @@ var routes = Routes{
 	Route{"Health", "GET", "/health", Health},
 	Route{"Ready", "GET", "/ready", Ready},
 	// API handlers
+	Route{"GetAllUsers", "GET", "/api/v1/users", GetAllUsers},
 	Route{"CreateUser", "POST", "/api/v1/users", CreateUser},
 	Route{"DeleteUser", "DELETE", "/api/v1/users/{userId}", DeleteUser},
 	Route{"FindUserById", "GET", "/api/v1/users/{userId}", FindUserById},
