@@ -22,6 +22,10 @@ class Notification(BaseModel):
     message: str
     sent_at: datetime
 
+class ServiceState(BaseModel):
+    status: str
+    message: str
+
 # "База данных" в памяти
 notifications_db = []
 next_id = 1
@@ -67,3 +71,16 @@ async def send_notification(request: NotificationRequest):
 @app.get("/notifications", response_model=List[Notification])
 async def get_notifications():
     return notifications_db
+
+
+@app.get('/health', response_model=ServiceState)
+async def health_check():
+    """Проверка состояния приложения"""
+    return ServiceState(status="OK", message="Application is healthy")
+
+
+@app.get('/ready')
+async def readiness_check():
+    """Проверка готовности приложения к работе"""
+    return ServiceState(status="OK", message="Application is ready to handle requests")
+
