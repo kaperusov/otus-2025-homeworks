@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -22,8 +23,9 @@ public class BillingService {
 
     @Transactional
     public AccountResponse createAccount(AccountCreateRequest request) {
-        if (accountRepository.existsByUserId(request.getUserId())) {
-            throw new IllegalArgumentException("Account already exists for user id: " + request.getUserId());
+        Optional<Account> founded = accountRepository.findByUserId(request.getUserId());
+        if (founded.isPresent()) {
+            return mapToAccountResponse(founded.get());
         }
 
         Account account = Account.builder()
