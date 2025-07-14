@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -71,7 +72,7 @@ public class BillingService {
                 .build();
     }
 
-    public AccountResponse getAccount(Long userId) {
+    public AccountResponse getAccount(UUID userId) {
         Account account = accountRepository.findByUserId(userId)
                 .orElseThrow(() -> new AccountNotFoundException(userId));
         return mapToAccountResponse(account);

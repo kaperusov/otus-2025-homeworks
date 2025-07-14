@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -20,7 +21,7 @@ public class Account {
     private Long id;
 
     @Column(name = "user_id", nullable = false, unique = true)
-    private Long userId;
+    private UUID userId;
 
     @Column(name = "balance", nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;
