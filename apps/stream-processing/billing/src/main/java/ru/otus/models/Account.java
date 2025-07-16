@@ -23,6 +23,9 @@ public class Account {
     @Column(name = "user_id", nullable = false, unique = true)
     private UUID userId;
 
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
+
     @Column(name = "balance", nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;
 

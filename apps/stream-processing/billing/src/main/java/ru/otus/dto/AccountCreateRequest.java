@@ -13,4 +13,5 @@ import java.util.UUID;
 @AllArgsConstructor
 public class AccountCreateRequest {
     private UUID userId;
+    private String email;
 }

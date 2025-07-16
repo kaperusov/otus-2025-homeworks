@@ -30,6 +30,7 @@ public class BillingService {
 
         Account account = Account.builder()
                 .userId(request.getUserId())
+                .email(request.getEmail())
                 .balance(BigDecimal.ZERO)
                 .build();
 
@@ -84,6 +85,7 @@ public class BillingService {
         return AccountResponse.builder()
                 .id(account.getId())
                 .userId(account.getUserId())
+                .email(account.getEmail())
                 .balance(account.getBalance())
                 .build();
     }

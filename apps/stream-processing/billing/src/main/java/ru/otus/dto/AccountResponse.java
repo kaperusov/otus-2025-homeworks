@@ -15,5 +15,6 @@ import java.util.UUID;
 public class AccountResponse {
     private Long id;
     private UUID userId;
+    private String email;
     private BigDecimal balance;
 }
