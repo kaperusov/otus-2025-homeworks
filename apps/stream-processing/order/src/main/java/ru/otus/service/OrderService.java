@@ -1,11 +1,12 @@
 package ru.otus.service;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import ru.otus.controlles.models.Order;
 import ru.otus.controlles.models.STATUS;
@@ -23,9 +24,6 @@ import java.util.UUID;
 public class OrderService {
 
     private final RestTemplate restTemplate;
-
-    @Value("${ru.otus.billing.service.baseUrl:http://localhost:8080/api/v1/billing}")
-    String billingServiceBaseUrl;
 
     final OrderRepository orderRepository;
 
@@ -73,7 +71,7 @@ public class OrderService {
             HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
             ResponseEntity<String> responseEntity = restTemplate.postForEntity(
-                    this.billingServiceBaseUrl + "/withdraw",
+                    makeBillingServiceUrl( "/withdraw" ),
                     requestEntity,
                     String.class);
 
@@ -82,7 +80,7 @@ public class OrderService {
                 return true;
             }
         } catch ( Exception e ) {
-            log.error("Withdraw FAILED: " + e.getMessage(), e);
+            log.error("Withdraw FAILED: " + e.getMessage());
         }
         return false;
     }
@@ -99,10 +97,20 @@ public class OrderService {
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
         ResponseEntity<String> responseEntity = restTemplate.postForEntity(
-                this.billingServiceBaseUrl + "/deposit",
+                makeBillingServiceUrl( "/deposit" ),
                 requestEntity,
                 String.class);
 
         log.debug("rollbackMoney: {}", responseEntity);
+    }
+
+    private static String makeBillingServiceUrl(@NonNull String endpoint) {
+        String notificationServiceBaseUrl = System.getenv("BILLING_SERVICE_BASEURL");
+        if (!StringUtils.hasText(notificationServiceBaseUrl)) {
+            notificationServiceBaseUrl = "http://localhost:8080/api/v1/billing";
+        }
+        String url = notificationServiceBaseUrl + endpoint;
+        log.debug( "Make URL for request to BillingService: {}", url );
+        return url;
     }
 }

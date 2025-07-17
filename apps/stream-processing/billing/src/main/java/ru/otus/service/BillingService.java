@@ -1,11 +1,12 @@
 package ru.otus.service;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import ru.otus.dto.AccountCreateRequest;
 import ru.otus.dto.AccountResponse;
@@ -32,9 +33,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class BillingService {
-
-    @Value("${ru.otus.notification.service.baseUrl:http://localhost:8081}")
-    String notificationServiceBaseUrl;
 
     private static final String SUCCESS_MESSAGE = "Withdrawal successful";
     private static final String BAD_MESSAGE = "Withdrawal failed";
@@ -144,7 +142,9 @@ public class BillingService {
 
             HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(body, headers);
 
-            ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(this.notificationServiceBaseUrl + "/notifications",
+
+            ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(
+                    makeNotificationServiceUrl("/notifications"),
                     requestEntity,
                     String.class);
             log.debug( "stringResponseEntity: {}", stringResponseEntity );
@@ -152,5 +152,15 @@ public class BillingService {
         catch (Exception e) {
             log.error( e.getMessage(), e );
         }
+    }
+
+    private static String makeNotificationServiceUrl(@NonNull String endpoint) {
+        String notificationServiceBaseUrl = System.getenv("NOTIFICATION_SERVICE_BASEURL");
+        if (!StringUtils.hasText(notificationServiceBaseUrl)) {
+            notificationServiceBaseUrl = "http://localhost:8081";
+        }
+        String url = notificationServiceBaseUrl + endpoint;
+        log.debug( "Make URL for request to NotificationService: {}", url );
+        return url;
     }
 }
