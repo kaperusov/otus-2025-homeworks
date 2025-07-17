@@ -1,0 +1,25 @@
+
+services:
+
+  billing:
+    image: ${DOCKER_REGISTRY}/billing:latest
+    environment:
+      TZ: "Europe/Moscow"
+      NOTIFICATION_SERVICE_BASEURL: http://notification:8081
+    ports:
+      - "8080:8080"
+
+  notification:
+    image: ${DOCKER_REGISTRY}/notification:latest
+    environment:
+      TZ: "Europe/Moscow"
+    ports:
+      - "8081:8081"
+
+  order:
+    image: ${DOCKER_REGISTRY}/order:latest
+    environment:
+      TZ: "Europe/Moscow"
+      BILLING_SERVICE_BASEURL: http://billing:8080/api/v1/billing
+    ports:
+      - "8082:8082"
