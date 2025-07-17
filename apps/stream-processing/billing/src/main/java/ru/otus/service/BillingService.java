@@ -20,7 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -88,8 +90,6 @@ public class BillingService {
             throw e;
         }
 
-        Long orderNumber = 5817817575L;
-
         account.setBalance(account.getBalance().subtract(request.getAmount()));
         account = accountRepository.save(account);
 
@@ -99,10 +99,20 @@ public class BillingService {
                 .newBalance(account.getBalance())
                 .build();
 
-        sendNotification(account.getEmail(), SUCCESS_MESSAGE, """
-                Your order number is %d.
+        DecimalFormat decimalFormat = new DecimalFormat("#,##0.00");
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        sendNotification(
+                account.getEmail(),
+                SUCCESS_MESSAGE,
+                """
+                Your order No_%s has been successfully paid for $%s.
                 Date: %s
-                """.formatted(orderNumber, LocalDateTime.now()));
+                """.formatted(
+                        request.getOrderNumber(),
+                        decimalFormat.format(request.getAmount()),
+                        LocalDateTime.now().format(dateFormatter))
+        );
 
         return withdrawalSuccessful;
     }

@@ -15,4 +15,5 @@ import java.util.UUID;
 public class TransactionRequest {
     private UUID userId;
     private BigDecimal amount;
+    private BigDecimal orderNumber;
 }
