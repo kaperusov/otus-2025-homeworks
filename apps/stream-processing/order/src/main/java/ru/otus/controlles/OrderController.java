@@ -22,7 +22,8 @@ public class OrderController {
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Object> createAccount(@Valid @RequestBody Order request) {
         try {
-            return ResponseEntity.ok(orderService.createOrder(request));
+            Order order = orderService.createOrder(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(order);
         }
         catch (HttpClientErrorException e ) {
             log.error(e.getMessage(), e);

@@ -3,6 +3,7 @@ package ru.otus.controllers;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ResponseStatusException;
 import ru.otus.dto.AccountCreateRequest;
+import ru.otus.dto.AccountResponse;
 import ru.otus.dto.TransactionRequest;
 import ru.otus.dto.TransactionResponse;
 import ru.otus.exception.AccountNotFoundException;
@@ -26,7 +27,8 @@ public class BillingController {
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Object> createAccount(@Valid @RequestBody AccountCreateRequest request) {
         try {
-            return ResponseEntity.ok(billingService.createAccount(request));
+            AccountResponse account = billingService.createAccount(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(account);
         } catch (Exception e ) {
             return buildErrorResponseEntity(e);
         }
