@@ -37,6 +37,9 @@ public class Order {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "status")
+    private STATUS status;
+
     @Column(name = "createdAt")
     private LocalDateTime createdAt = LocalDateTime.now();
 
