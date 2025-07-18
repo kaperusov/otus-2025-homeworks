@@ -8,13 +8,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import ru.otus.models.Notification;
 import ru.otus.models.NotificationRequest;
-import ru.otus.models.ServiceState;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.time.LocalDateTime;
 
 @RestController
+@RequestMapping("/api/v1/notification")
 @RequiredArgsConstructor
 public class NotificationController {
 
@@ -27,7 +27,7 @@ public class NotificationController {
     // SMTP configuration
     private final String mockMailSender = System.getenv().getOrDefault("MOCK_MAIL_SENDER", "true");
 
-    @PostMapping("/notifications")
+    @PostMapping()
     public ResponseEntity<Object> sendNotification(@RequestBody NotificationRequest request) {
         // If not mock, try to send real email
         if (!"true".equals(mockMailSender)) {
@@ -58,18 +58,8 @@ public class NotificationController {
         return ResponseEntity.ok(notification);
     }
 
-    @GetMapping("/notifications")
+    @GetMapping()
     public List<Notification> getNotifications() {
         return notificationsDb;
-    }
-
-    @GetMapping("/health")
-    public ServiceState healthCheck() {
-        return new ServiceState("OK", "Application is healthy");
-    }
-
-    @GetMapping("/ready")
-    public ServiceState readinessCheck() {
-        return new ServiceState("OK", "Application is ready to handle requests");
     }
 }

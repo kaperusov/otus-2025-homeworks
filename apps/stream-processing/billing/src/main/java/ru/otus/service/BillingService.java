@@ -1,6 +1,5 @@
 package ru.otus.service;
 
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -143,24 +142,24 @@ public class BillingService {
             HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(body, headers);
 
 
-            ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(
-                    makeNotificationServiceUrl("/notifications"),
+            ResponseEntity<String> responseEntity = restTemplate.postForEntity(
+                    getNotificationServiceUrl(),
                     requestEntity,
                     String.class);
-            log.debug( "stringResponseEntity: {}", stringResponseEntity );
+            log.debug( "Response entity: {}", responseEntity );
         }
         catch (Exception e) {
             log.error( e.getMessage(), e );
         }
     }
 
-    private static String makeNotificationServiceUrl(@NonNull String endpoint) {
+    private static String getNotificationServiceUrl() {
         String notificationServiceBaseUrl = System.getenv("NOTIFICATION_SERVICE_BASEURL");
         if (!StringUtils.hasText(notificationServiceBaseUrl)) {
-            notificationServiceBaseUrl = "http://localhost:8081";
+            notificationServiceBaseUrl = "http://localhost:8081/api/v1/notification";
         }
-        String url = notificationServiceBaseUrl + endpoint;
-        log.debug( "Make URL for request to NotificationService: {}", url );
+        String url = notificationServiceBaseUrl;
+        log.info( "Make URL for request to NotificationService: {}", url );
         return url;
     }
 }
