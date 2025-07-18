@@ -5,15 +5,24 @@ metadata:
 data: 
   config.ini: |-
     [GENERAL]
-    debug_mode = False
+    debug = False
     host = 0.0.0.0
     port = 5000
 
     ui_url = http://ui:80
-    backend_url = http://app:8000
+    default_service_url = http://app:8000
     additional_logout_path = /openid-connect-auth/logout
-    swagger_url = http://app:8000/swagger-ui/index.html
     redirect_url = /token
+
+    [ROUTES]
+    billing.prefix = billing
+    billing.url = http://billing:8080/api/v1
+
+    notification.prefix = notification
+    notification.url = http://notification:8081/api/v1
+
+    order.prefix = order
+    order.url = http://order:8082/api/v1
 
     [KEYCLOAK]
     url = {{ .Values.keycloak.url }}
