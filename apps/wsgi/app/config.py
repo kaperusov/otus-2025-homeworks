@@ -13,6 +13,7 @@ class ConfigReader:
     API       : Final[str] = "API"
     KEYCLOAK  : Final[str] = "KEYCLOAK"
     LOGGING   : Final[str] = "LOGGING"
+    ROUTES    : Final[str] = "ROUTES"
 
     def __init__(self, config_file: str = 'config.ini'):
         if not Path(config_file).exists():
@@ -24,6 +25,17 @@ class ConfigReader:
 
     def is_debug_mode(self):
         return self.get_boolean(ConfigReader.GENERAL, 'debug_mode', False)
+
+    def get_route_config(self):
+        routes = {}
+        if self.config.has_section(ConfigReader.ROUTES):
+            for key in self.get_section(ConfigReader.ROUTES):
+                if '.' in key:
+                    service, param = key.split('.')
+                    if service not in routes:
+                        routes[service] = {}
+                    routes[service][param] = self.config[ConfigReader.ROUTES][key]
+        return routes
 
     def get_section(self, section_name: str) -> Optional[Dict[str, str]]:
         """Получить все параметры из секции конфига"""

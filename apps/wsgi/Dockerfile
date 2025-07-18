@@ -36,7 +36,9 @@ WORKDIR /app
 USER appuser
 
 # Копируем код приложения
-COPY --chown=appuser:appuser . .
+COPY --chown=appuser:appuser app app
+COPY --chown=appuser:appuser wsgi.py .
+COPY --chown=appuser:appuser config-sample.ini config.ini
 
 # Настройки окружения
 ENV FLASK_APP=wsgi.py

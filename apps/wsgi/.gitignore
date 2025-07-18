@@ -1,5 +1,6 @@
 logs/
 config.ini
+config-*.ini
 .env
 .idea/
 __pycache__/
