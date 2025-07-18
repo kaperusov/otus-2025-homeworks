@@ -13,3 +13,5 @@
  - 17. [Prometheus. Grafana](hw05-prometheus/README.md)
 
  - 19. [Backend for frontends. Apigateway](hw06-auth/README.md)
+
+ - 24. [RESTful // ДЗ ](hw07-restful/README.md)
