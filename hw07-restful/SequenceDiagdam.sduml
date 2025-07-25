@@ -1,0 +1,36 @@
+sequenceDiagram
+    participant User
+    participant APIGateway
+    participant Keycloak
+    participant BillingService
+    participant OrderService
+    participant NotificationService
+    
+    User->>APIGateway: POST /auth (username, password)
+    APIGateway->>Keycloak: Авторизация
+    Keycloak-->>APIGateway: Успех/ошибка
+
+    User->>APIGateway: POST /api/v1/accounts (JWT-токен)
+    APIGateway->>Keycloak: Валидация токена
+    Keycloak-->>APIGateway: Успех/ошибка
+    APIGateway->>BillingService: Создание (открытие) счёта
+    
+    User->>APIGateway: POST /api/v1/deposit (JWT-токен, размер средств)
+    APIGateway->>Keycloak: Валидация токена
+    Keycloak-->>APIGateway: Успех/ошибка
+    APIGateway->>BillingService: Пополнение счёта
+    
+    User->>APIGateway: POST /api/v1/order (цена, JWT-токен)
+    APIGateway->>Keycloak: Валидация токена
+    Keycloak-->>APIGateway: Успех/ошибка
+    APIGateway->>OrderService: Создание заказа
+    OrderService->>BillingService: Запрос на списание средств
+    BillingService-->>OrderService: Результат (OK/FAIL)
+    alt Платеж успешен
+        BillingService->>NotificationService: Отправить "письмо счастья"
+    else Платеж отклонен
+        BillingService->>NotificationService: Отправить "письмо горя"
+    end
+    NotificationService-->>User: Email с результатом
+    OrderService-->>APIGateway: Ответ с статусом заказа
+    APIGateway-->>User: Подтверждение создания заказа
