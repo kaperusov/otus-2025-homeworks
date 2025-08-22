@@ -4,7 +4,7 @@ ifneq ("$(wildcard $(ENV_FILE))","")
 endif
 
 DOCKER_REGISTRY ?= kaperusov
-MODULES         := billing notification order
+MODULES         := billing notification order warehouse delivery
 
 print-versions:
 	@for module in $(MODULES); do \

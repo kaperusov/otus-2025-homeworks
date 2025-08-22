@@ -12,6 +12,8 @@
         <module>order</module>
         <module>billing</module>
         <module>notification</module>
+        <module>warehouse</module>
+        <module>delivery</module>
     </modules>
 
     <properties>

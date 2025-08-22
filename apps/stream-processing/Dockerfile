@@ -7,6 +7,8 @@ COPY pom.xml .
 COPY ./billing ./billing
 COPY ./notification ./notification
 COPY ./order ./order
+COPY ./delivery ./delivery
+COPY ./warehouse ./warehouse
 RUN mvn dependency:go-offline
 RUN mvn package -DskipTests
 
