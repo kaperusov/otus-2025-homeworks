@@ -1,7 +1,7 @@
 package ru.otus.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import ru.otus.controlles.models.Order;
+import ru.otus.models.Order;
 
 import java.util.List;
 import java.util.UUID;

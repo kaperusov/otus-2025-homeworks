@@ -1,4 +1,4 @@
-package ru.otus.controlles.models;
+package ru.otus.models;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -19,14 +19,20 @@ import java.util.UUID;
 public class Order {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "price", nullable = false)
     private BigDecimal price = BigDecimal.ZERO;
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
+
+    @Column(name = "product_id", nullable = false, unique = true)
+    private UUID productId;
+
+    @Column(name = "quantity")
+    private int quantity;
 
     @Column(name = "number", nullable = false, unique = true)
     private BigDecimal number = BigDecimal.ZERO;

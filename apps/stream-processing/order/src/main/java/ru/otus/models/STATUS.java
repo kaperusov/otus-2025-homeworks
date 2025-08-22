@@ -1,4 +1,4 @@
-package ru.otus.controlles.models;
+package ru.otus.models;
 
 public enum STATUS {
     NEW,          // Новый заказ
