@@ -1,5 +1,6 @@
 package ru.otus.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ResponseStatusException;
 import ru.otus.dto.AccountCreateRequest;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/billing")
 @RequiredArgsConstructor
@@ -62,6 +64,7 @@ public class BillingController {
     }
 
     protected ResponseEntity<Object> buildErrorResponseEntity(Throwable throwable ) {
+        log.error( throwable.getMessage(), throwable );
         return switch (throwable) {
             case ResponseStatusException statusException ->
                     ResponseEntity.status(statusException.getStatusCode()).build();
