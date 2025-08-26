@@ -84,16 +84,19 @@ public class OrderService {
                 .build());
 
         UUID orderId = order.getId();
+        log.info( "New order created: {}", order);
 
         try {
             // Шаг 1: Выполнение платежа
             SagaStepResult paymentResult = processPayment(request.getUserId(), orderId, request.getItems());
+            log.debug( "1. Payment result: {}", paymentResult);
             if (!paymentResult.isSuccess()) {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Payment failed: " + paymentResult.getMessage());
             }
 
             // Шаг 2: Резервирование товара
             SagaStepResult warehouseResult = reserveItems(orderId, request.getItems());
+            log.debug( "2. Warehouse reservation result: {}", warehouseResult);
             if (!warehouseResult.isSuccess()) {
                 cancelPayment(orderId, paymentResult.getTransactionId());
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Warehouse reservation failed: " + warehouseResult.getMessage());
@@ -101,6 +104,7 @@ public class OrderService {
 
             // Шаг 3: Резервирование доставки
             SagaStepResult deliveryResult = reserveDelivery(orderId, request.getDeliveryInfo());
+            log.debug( "3. Delivery reservation result: {}", deliveryResult);
             if (!deliveryResult.isSuccess()) {
                 cancelPayment(orderId, paymentResult.getTransactionId());
                 cancelReservation(orderId, warehouseResult.getTransactionId());
@@ -108,9 +112,12 @@ public class OrderService {
             }
 
             // Все шаги успешны
-            return updateOrderStatus(orderId, OrderStatus.CONFIRMED, null);
+            Order confirmedOrder = updateOrderStatus(orderId, OrderStatus.CONFIRMED, null);
+            log.info( "Order processing No.{} (UUID: {}) completed successfully!", order.getNumber(), order.getId());
+            return confirmedOrder;
         }
         catch (Exception e) {
+            log.error( "Order processing No.{} (UUID: {}) FAILED.", order.getNumber(), order.getId());
             updateOrderStatus(orderId, OrderStatus.FAILED, e.getMessage());
             throw e;
         }
@@ -120,8 +127,10 @@ public class OrderService {
     private SagaStepResult processPayment(UUID userId, UUID orderId, List<OrderRequest.OrderItem> items) {
         try {
             BigDecimal amount = calcAmount( items );
+            String url = makeUrl( BILLING_SERVICE_BASEURL, "/withdraw" );
+            log.debug( "URL for payment: {}", url);
             ResponseEntity<SagaStepResult> responseEntity = restTemplate.postForEntity(
-                    makeUrl( BILLING_SERVICE_BASEURL, "/withdraw" ),
+                    url,
                     Map.of(
                             USER_ID, userId,
                             ORDER_ID, orderId,
@@ -141,8 +150,10 @@ public class OrderService {
     @NonNull
     private SagaStepResult reserveItems(UUID orderId, List<OrderRequest.OrderItem> items) {
         try {
+            String url = makeUrl( WAREHOUSE_SERVICE_BASEURL, "/reserve" );
+            log.debug( "URL for stock item reserve: {}", url);
             ResponseEntity<SagaStepResult> responseEntity = restTemplate.postForEntity(
-                    makeUrl( WAREHOUSE_SERVICE_BASEURL, "/reserve" ),
+                    url,
                     Map.of(
                             ORDER_ID, orderId,
                             ORDER_ITEMS, items
@@ -161,8 +172,10 @@ public class OrderService {
     @NonNull
     private SagaStepResult reserveDelivery(UUID orderId, OrderRequest.DeliveryInfo deliveryInfo) {
         try {
+            String url = makeUrl(DELIVERY_SERVICE_BASEURL, "/reserve" );
+            log.debug( "URL for delivery reserve: {}", url);
             ResponseEntity<SagaStepResult> responseEntity = restTemplate.postForEntity(
-                    makeUrl(DELIVERY_SERVICE_BASEURL, "/reserve" ),
+                    url,
                     Map.of(
                             ORDER_ID, orderId,
                             "address", deliveryInfo.getAddress(),
@@ -181,10 +194,10 @@ public class OrderService {
 
     private void cancelPayment(UUID orderId, UUID transactionId) {
         try {
-            restTemplate.postForEntity(
-                    makeUrl( BILLING_SERVICE_BASEURL,"/cancel/" + transactionId ),
-                    null,
-                    Void.class);
+            String url = makeUrl( BILLING_SERVICE_BASEURL,"/cancel/" + transactionId );
+            log.debug( "URL to cancel payment: {}", url);
+            restTemplate.postForEntity( url, null, Void.class);
+            log.info( "Payment for order {} has been cancelled.", orderId);
         } catch (Exception e) {
             log.error("Failed to cancel payment for order {}: {}", orderId, e.getMessage());
         }
@@ -193,10 +206,10 @@ public class OrderService {
 
     private void cancelReservation(UUID orderId, UUID transactionId) {
         try {
-            restTemplate.postForEntity(
-                    makeUrl(WAREHOUSE_SERVICE_BASEURL, "/reserve/cancel/" + transactionId),
-                    null,
-                    Void.class);
+            String url = makeUrl(WAREHOUSE_SERVICE_BASEURL, "/reserve/cancel/" + transactionId);
+            log.debug( "URL to cancel warehouse reservation: {}", url);
+            restTemplate.postForEntity(url, null, Void.class);
+            log.info( "Warehouse reservation for order {} has been cancelled.", orderId);
         }
         catch (Exception e ) {
             log.error("Failed to cancel reservation for order {}: {}", orderId, e.getMessage());
