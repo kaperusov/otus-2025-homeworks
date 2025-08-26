@@ -241,6 +241,7 @@
 							"pm.test(\"Balance is correct\", function() {",
 							"    // Проверяем, что баланс уменьшился на сумму заказа",
 							"    pm.expect(currentBalance).to.equal(baseDepositeAmount - price);",
+							"    console.log(pm.response.json());",	
 							"});"
 						],
 						"type": "text/javascript",
