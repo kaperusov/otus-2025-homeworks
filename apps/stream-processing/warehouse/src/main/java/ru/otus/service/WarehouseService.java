@@ -13,10 +13,7 @@ import ru.otus.repository.ReservationRepository;
 import ru.otus.repository.StockRepository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +36,8 @@ public class WarehouseService {
             List<Stock> stockList = new ArrayList<>(request.getItems().size());
             // Проверяем доступность всех товаров перед резервированием
             for (var item : request.getItems()) {
-                Stock stock = getOrCreateStock(item.getProductId());
+                UUID productId = Objects.requireNonNullElseGet(item.getProductId(), UUID::randomUUID);
+                Stock stock = getOrCreateStock(productId);
                 stockList.add( stock );
 //                Stock stock = stockRepository.findByProductIdWithLock(item.getProductId())
 //                        .orElseThrow(() -> new RuntimeException(
@@ -47,7 +45,7 @@ public class WarehouseService {
 
                 if (stock.getAvailableQuantity() < item.getQuantity()) {
                     throw new RuntimeException(
-                            "Not enough stock for product " + item.getProductId() +
+                            "Not enough stock for product " + productId +
                             ". Available: " + stock.getAvailableQuantity() +
                             ", Requested: " + item.getQuantity());
                 }
