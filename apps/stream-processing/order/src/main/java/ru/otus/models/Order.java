@@ -28,26 +28,34 @@ public class Order {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @Column(name = "product_id", nullable = false, unique = true)
-    private UUID productId;
-
-    @Column(name = "quantity")
-    private int quantity;
-
     @Column(name = "number", nullable = false, unique = true)
-    private BigDecimal number = BigDecimal.ZERO;
-
-    @Column(name = "name", nullable = false)
-    private String name;
+    private String number;
 
     @Column(name = "description")
     private String description;
 
     @Column(name = "status")
-    private STATUS status;
+    private OrderStatus status;
+
+    @Column(name = "errorMessage")
+    private String errorMessage;
 
     @Column(name = "createdAt")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
+
+    @Column(name = "updatedAt")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
     @Version
     private Long version; // Для оптимистичной блокировки

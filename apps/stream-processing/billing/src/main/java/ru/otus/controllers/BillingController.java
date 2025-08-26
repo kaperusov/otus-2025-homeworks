@@ -54,6 +54,18 @@ public class BillingController {
         }
     }
 
+    @PostMapping("/cancel/{transactionId}")
+    public ResponseEntity<Object> cancelPayment(
+            @PathVariable("transactionId") UUID transactionId)
+    {
+        try {
+            billingService.cancelPayment(transactionId);
+            return ResponseEntity.ok( "Payment canceled");
+        } catch (Exception e ) {
+            return buildErrorResponseEntity(e);
+        }
+    }
+
     @GetMapping("/accounts/{userId}")
     public ResponseEntity<Object> getAccount(@PathVariable("userId") UUID userId) {
         try {
@@ -72,16 +84,19 @@ public class BillingController {
                     .body(new TransactionResponse(
                             false,
                             illegalArgumentException.getMessage(),
+                            null,
                             new BigDecimal(0)));
             case AccountNotFoundException accountNotFoundException -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new TransactionResponse(
                             false,
                             accountNotFoundException.getMessage(),
+                            null,
                             new BigDecimal(0)));
             case InsufficientFundsException insufficientFundsException -> ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new TransactionResponse(
                             false,
                             insufficientFundsException.getMessage(),
+                            null,
                             insufficientFundsException.getCurrentBalance()));
             default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         };

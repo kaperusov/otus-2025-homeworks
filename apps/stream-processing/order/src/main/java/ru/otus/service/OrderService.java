@@ -10,217 +10,209 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 import ru.otus.models.Order;
-import ru.otus.models.STATUS;
+import ru.otus.models.OrderRequest;
+import ru.otus.models.OrderStatus;
+import ru.otus.models.SagaStepResult;
 import ru.otus.repository.OrderRepository;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class OrderService {
 
+    // Bean injection
+    private final RestTemplate restTemplate;
+    private final OrderRepository orderRepository;
+    // ---
+
     private static final String BILLING_SERVICE_BASEURL = System.getenv("BILLING_SERVICE_BASEURL");
     private static final String WAREHOUSE_SERVICE_BASEURL = System.getenv("WAREHOUSE_SERVICE_BASEURL");
-    private static final String DELIVER_SERVICE_BASEURL = System.getenv("DELIVER_SERVICE_BASEURL");
+    private static final String DELIVERY_SERVICE_BASEURL = System.getenv("DELIVERY_SERVICE_BASEURL");
 
+    // Map fields
     private static final String USER_ID = "userId";
     private static final String AMOUNT = "amount";
-    private static final String ORDER_NUMBER = "orderNumber";
-
     private static final String ORDER_ID = "orderId";
-    private static final String PRODUCT_ID = "productId";
-    private static final String PRODUCT_QUANTITY = "quantity";
-
-
-
-    private final RestTemplate restTemplate;
-
-    final OrderRepository orderRepository;
+    private static final String ORDER_ITEMS = "items";
 
     private final Random random = new Random();
 
-    private BigDecimal getOrderNumber() {
-        long min = 200_000_000L;
-        long max = 999_999_999L;
-        return new BigDecimal(random.nextLong(min, max));
+    private String generateOrderNumber() {
+        long min = 1_000_000_000L;
+        long max = 999_999_999_999L;
+        BigDecimal number = new BigDecimal(random.nextLong(min, max));
+        String formatted = String.format("%012d", number.longValue());
+        return formatted.substring(0, 4) + "-" +
+               formatted.substring(4, 7) + "-" +
+               formatted.substring(7, 10) + " " +
+               formatted.substring(10);
     }
 
+    private String generateDescription(List<OrderRequest.OrderItem> items) {
+        StringBuilder description = new StringBuilder( "Products: " );
+        for (OrderRequest.OrderItem item : items) {
+            description.append( item.getName());
+            description.append( ", " );
+        }
+        return description.substring(0, description.length() - 2 );
+    }
+
+    private BigDecimal calcAmount(List<OrderRequest.OrderItem> items) {
+        BigDecimal amount = BigDecimal.ZERO;
+        for (OrderRequest.OrderItem item : items) {
+            BigDecimal q = BigDecimal.valueOf( item.getQuantity());
+            amount = amount.add( item.getPrice().multiply( q ));
+        }
+        return amount;
+    }
 
     @Transactional
-    public Order createOrder(Order request) {
+    public Order createOrder(OrderRequest request) {
+        if ( request.getItems() == null || request.getItems().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Order items can't by empty.");
+        }
 
-        Order order = Order.builder()
-                .name(request.getName())
-                .price(request.getPrice())
-                .status(STATUS.NEW)
+        Order order = orderRepository.save(Order.builder()
+                .price(calcAmount(request.getItems()))
+                .number(generateOrderNumber())
+                .status(OrderStatus.NEW)
+                .description(generateDescription(request.getItems()))
                 .userId(request.getUserId())
-                .description(request.getDescription())
-                .number(getOrderNumber())
-//                .orderId(UUID.randomUUID())
-                .productId(UUID.randomUUID())
-                .quantity(request.getQuantity())
-                .build();
+                .build());
 
-        Order newOrder = orderRepository.save(order);
-        if ( withdraw(request.getUserId(), request.getPrice(), newOrder.getNumber())) {
-            return updateStatus( newOrder.getId(), STATUS.PAID );
-        } else {
-            return updateStatus( newOrder.getId(), STATUS.CANCELLED );
+        UUID orderId = order.getId();
+
+        try {
+            // Шаг 1: Выполнение платежа
+            SagaStepResult paymentResult = processPayment(request.getUserId(), orderId, request.getItems());
+            if (!paymentResult.isSuccess()) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Payment failed: " + paymentResult.getMessage());
+            }
+
+            // Шаг 2: Резервирование товара
+            SagaStepResult warehouseResult = reserveItems(orderId, request.getItems());
+            if (!warehouseResult.isSuccess()) {
+                cancelPayment(orderId, paymentResult.getTransactionId());
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Warehouse reservation failed: " + warehouseResult.getMessage());
+            }
+
+            // Шаг 3: Резервирование доставки
+            SagaStepResult deliveryResult = reserveDelivery(orderId, request.getDeliveryInfo());
+            if (!deliveryResult.isSuccess()) {
+                cancelPayment(orderId, paymentResult.getTransactionId());
+                cancelReservation(orderId, warehouseResult.getTransactionId());
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Delivery reservation failed: " + deliveryResult.getMessage());
+            }
+
+            // Все шаги успешны
+            return updateOrderStatus(orderId, OrderStatus.CONFIRMED, null);
+        }
+        catch (Exception e) {
+            updateOrderStatus(orderId, OrderStatus.FAILED, e.getMessage());
+            throw e;
         }
     }
 
-
-    private boolean withdraw(UUID userId, BigDecimal price, BigDecimal orderNumber) {
+    @NonNull
+    private SagaStepResult processPayment(UUID userId, UUID orderId, List<OrderRequest.OrderItem> items) {
         try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            Map<String, Object> body = new HashMap<>();
-            body.put(USER_ID, userId);
-            body.put(AMOUNT, price);
-            body.put(ORDER_NUMBER, orderNumber);
-
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-            ResponseEntity<String> responseEntity = restTemplate.postForEntity(
+            BigDecimal amount = calcAmount( items );
+            ResponseEntity<SagaStepResult> responseEntity = restTemplate.postForEntity(
                     makeUrl( BILLING_SERVICE_BASEURL, "/withdraw" ),
-                    requestEntity,
-                    String.class);
+                    Map.of(
+                            USER_ID, userId,
+                            ORDER_ID, orderId,
+                            AMOUNT, amount
+                    ),
+                    SagaStepResult.class);
 
-            if (responseEntity.getStatusCode() == HttpStatus.OK) {
-                log.debug("withdraw: {}", responseEntity);
-                return true;
-            }
-        } catch ( Exception e ) {
-            log.error("Withdraw FAILED: {}", e.getMessage(), e);
+            return Objects.requireNonNullElseGet(responseEntity.getBody(),
+                    () -> new SagaStepResult(false, "Billing service result body is empty", null, null));
         }
-        return false;
+        catch ( Exception e ) {
+            log.error( e.getMessage(), e );
+            return new SagaStepResult(false, "billing service error: " + e.getMessage(), null, null);
+        }
     }
 
-    public Order reserve(Order order) {
+    @NonNull
+    private SagaStepResult reserveItems(UUID orderId, List<OrderRequest.OrderItem> items) {
         try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            Map<String, Object> body = new HashMap<>();
-            body.put(ORDER_ID, order.getId());
-            body.put(PRODUCT_ID, order.getProductId());
-            body.put(PRODUCT_QUANTITY, order.getQuantity());
-
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-            ResponseEntity<String> responseEntity = restTemplate.postForEntity(
+            ResponseEntity<SagaStepResult> responseEntity = restTemplate.postForEntity(
                     makeUrl( WAREHOUSE_SERVICE_BASEURL, "/reserve" ),
-                    requestEntity,
-                    String.class);
+                    Map.of(
+                            ORDER_ID, orderId,
+                            ORDER_ITEMS, items
+                    ),
+                    SagaStepResult.class);
 
-            if (responseEntity.getStatusCode() == HttpStatus.OK) {
-                log.debug("reservation: {}", responseEntity);
-                return updateStatus( order.getId(), STATUS.PROCESSING );
-            }
-        } catch ( Exception e ) {
+            return Objects.requireNonNullElseGet(responseEntity.getBody(),
+                    () -> new SagaStepResult(false, "Warehouse service result body is empty", null, null));
+        }
+        catch ( Exception e ) {
             log.error("Reservation FAILED: {}", e.getMessage(), e);
+            return new SagaStepResult(false, "Warehouse service error: " + e.getMessage(), null, null);
         }
-        return order;
     }
 
-
-    public Order updateStatus(UUID id, STATUS status ) {
-        Order order = orderRepository.findById(id).orElseThrow(() ->
-                new ResponseStatusException( HttpStatus.NOT_FOUND ));
-        order.setStatus( status );
-        Order updated =  orderRepository.save( order );
-        log.debug("Updated order status: '{}' (ID={})", status, id);
-        return updated;
-    }
-
-    public Order deliver(Order order) {
+    @NonNull
+    private SagaStepResult reserveDelivery(UUID orderId, OrderRequest.DeliveryInfo deliveryInfo) {
         try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
+            ResponseEntity<SagaStepResult> responseEntity = restTemplate.postForEntity(
+                    makeUrl(DELIVERY_SERVICE_BASEURL, "/reserve" ),
+                    Map.of(
+                            ORDER_ID, orderId,
+                            "address", deliveryInfo.getAddress(),
+                            "preferredTimeSlot", deliveryInfo.getPreferredTimeSlot()
+                    ),
+                    SagaStepResult.class);
 
-            Map<String, Object> body = new HashMap<>();
-            body.put(USER_ID, order.getUserId());
-            body.put(ORDER_NUMBER, order.getNumber());
-
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-            ResponseEntity<String> responseEntity = restTemplate.postForEntity(
-                    makeUrl( DELIVER_SERVICE_BASEURL, "/deliver" ),
-                    requestEntity,
-                    String.class);
-
-            if (responseEntity.getStatusCode() == HttpStatus.OK) {
-                log.debug("deliver: {}", responseEntity);
-                return updateStatus( order.getId(), STATUS.SHIPPED );
-            }
-        } catch ( Exception e ) {
-            log.error("Deliver FAILED: {}", e.getMessage(), e);
+            return Objects.requireNonNullElseGet(responseEntity.getBody(),
+                    () -> new SagaStepResult(false, "Delivery service result body is empty", null, null));
         }
-        return order;
+        catch (Exception e) {
+            return new SagaStepResult(false, "Delivery service error: " + e.getMessage(), null, null);
+        }
     }
 
 
-    public Order rollbackMoney(Order order) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        Map<String, Object> body = new HashMap<>();
-        body.put(USER_ID, order.getUserId());
-        body.put(AMOUNT, order.getPrice());
-
-        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(
-                makeUrl( BILLING_SERVICE_BASEURL,"/deposit" ),
-                requestEntity,
-                String.class);
-
-        log.info("rollbackMoney: {}", responseEntity);
-        return updateStatus( order.getId(), STATUS.CANCELLED );
+    private void cancelPayment(UUID orderId, UUID transactionId) {
+        try {
+            restTemplate.postForEntity(
+                    makeUrl( BILLING_SERVICE_BASEURL,"/cancel/" + transactionId ),
+                    null,
+                    Void.class);
+        } catch (Exception e) {
+            log.error("Failed to cancel payment for order {}: {}", orderId, e.getMessage());
+        }
     }
 
 
-    public Order rollbackWarehouseProcessing(Order order) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        Map<String, Object> body = new HashMap<>();
-        body.put(ORDER_NUMBER, order.getNumber());
-
-        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(
-                makeUrl( WAREHOUSE_SERVICE_BASEURL,"/rollback" ),
-                requestEntity,
-                String.class);
-
-        log.info("Rollback warehouse processing: {}", responseEntity);
-        return updateStatus( order.getId(), STATUS.PAID );
+    private void cancelReservation(UUID orderId, UUID transactionId) {
+        try {
+            restTemplate.postForEntity(
+                    makeUrl(WAREHOUSE_SERVICE_BASEURL, "/reserve/cancel/" + transactionId),
+                    null,
+                    Void.class);
+        }
+        catch (Exception e ) {
+            log.error("Failed to cancel reservation for order {}: {}", orderId, e.getMessage());
+        }
     }
 
 
-    public Order rollbackDelivering(Order order) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+    private Order updateOrderStatus(UUID orderId, OrderStatus status, String errorMessage) {
+        // Загружаем свежую версию заказа
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
 
-        Map<String, Object> body = new HashMap<>();
-        body.put(ORDER_NUMBER, order.getNumber());
+        order.setStatus(status);
+        order.setErrorMessage(errorMessage);
 
-        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(
-                makeUrl( DELIVER_SERVICE_BASEURL,"/rollback" ),
-                requestEntity,
-                String.class);
-
-        log.info("Rollback delivering: {}", responseEntity);
-        return updateStatus( order.getId(), STATUS.PROCESSING );
+        return orderRepository.save(order);
     }
 
 

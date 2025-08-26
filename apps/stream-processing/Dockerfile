@@ -51,3 +51,31 @@ RUN chown -R javauser:javagroup /app
 USER javauser
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "order.jar"]
+
+
+# Stage 5: Create warehouse application
+FROM eclipse-temurin:21-jre-alpine AS warehouse-app
+
+RUN addgroup -S javagroup && adduser -S javauser -G javagroup
+
+WORKDIR /app
+COPY --from=builder /app/warehouse/target/*.jar ./warehouse.jar
+RUN chown -R javauser:javagroup /app
+
+USER javauser
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "warehouse.jar"]
+
+
+# Stage 6: Create delivery application
+FROM eclipse-temurin:21-jre-alpine AS delivery-app
+
+RUN addgroup -S javagroup && adduser -S javauser -G javagroup
+
+WORKDIR /app
+COPY --from=builder /app/delivery/target/*.jar ./delivery.jar
+RUN chown -R javauser:javagroup /app
+
+USER javauser
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "delivery.jar"]

@@ -91,7 +91,7 @@ public class WarehouseService {
         else {
             Stock stock = new Stock();
             stock.setProductId( productId );
-            stock.setTotalQuantity( 3 );
+            stock.setTotalQuantity( 10 );
             stock.setReservedQuantity( 0 );
 
             return stockRepository.save( stock );

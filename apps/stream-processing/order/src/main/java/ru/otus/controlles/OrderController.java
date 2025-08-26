@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import ru.otus.models.Order;
-import ru.otus.models.STATUS;
+import ru.otus.models.OrderRequest;
 import ru.otus.service.OrderService;
 
 @RestController
@@ -19,34 +19,11 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    @PostMapping("{testTransaction}")
+    @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Object> createOrder(@Valid @RequestBody Order request,
-                                              @PathVariable("testTransaction") int testTransaction ) {
+    public ResponseEntity<Object> createOrder(@Valid @RequestBody OrderRequest request) {
         try {
             Order order = orderService.createOrder(request);
-
-            if ( STATUS.PAID.equals( order.getStatus() ) && testTransaction >= 0 )  {
-                order = orderService.reserve( order );
-
-                if ( STATUS.PROCESSING.equals( order.getStatus() ) && testTransaction >= 1 )  {
-                    order = orderService.deliver( order );
-
-                    if ( STATUS.SHIPPED.equals( order.getStatus()) && testTransaction >= 2 ) {
-                        log.info("Finished order status: {}", order.getStatus());
-                    }
-                    else {
-                        order = rollbackTransaction(order, STATUS.SHIPPED);
-                    }
-                }
-                else {
-                    order = rollbackTransaction(order, STATUS.PROCESSING);
-                }
-            }
-            else {
-                order = rollbackTransaction(order, STATUS.PAID);
-            }
-
             return ResponseEntity.status(HttpStatus.CREATED).body(order);
         }
         catch (HttpClientErrorException e ) {
@@ -63,13 +40,4 @@ public class OrderController {
         }
     }
 
-    private Order rollbackTransaction(Order order, STATUS status) {
-        return switch (status) {
-            case PAID -> orderService.rollbackMoney(order);
-            case PROCESSING -> orderService.rollbackWarehouseProcessing(order);
-            case SHIPPED -> orderService.rollbackDelivering(order);
-
-            default ->  orderService.updateStatus(order.getId(), STATUS.FAILED);
-        };
-    }
 }

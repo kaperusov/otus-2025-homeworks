@@ -1,12 +1,10 @@
 package ru.otus.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 import ru.otus.dto.AccountCreateRequest;
 import ru.otus.dto.AccountResponse;
 import ru.otus.dto.TransactionRequest;
@@ -14,10 +12,12 @@ import ru.otus.dto.TransactionResponse;
 import ru.otus.exception.AccountNotFoundException;
 import ru.otus.exception.InsufficientFundsException;
 import ru.otus.models.Account;
+import ru.otus.models.Transaction;
 import ru.otus.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.otus.repository.TransactionRepository;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -39,6 +39,7 @@ public class BillingService {
     private final RestTemplate restTemplate;
 
     private final AccountRepository accountRepository;
+    private final TransactionRepository transactionRepository;
 
     @Transactional
     public AccountResponse createAccount(AccountCreateRequest request) {
@@ -90,7 +91,13 @@ public class BillingService {
         account.setBalance(account.getBalance().subtract(request.getAmount()));
         account = accountRepository.save(account);
 
+        Transaction transaction = transactionRepository.save( Transaction.builder().
+                accountId(account.getId()).
+                amount(request.getAmount()).
+                build());
+
         TransactionResponse withdrawalSuccessful = TransactionResponse.builder()
+                .transactionId(transaction.getId())
                 .success(true)
                 .message(SUCCESS_MESSAGE)
                 .newBalance(account.getBalance())
@@ -112,6 +119,21 @@ public class BillingService {
         );
 
         return withdrawalSuccessful;
+    }
+
+    public void cancelPayment(UUID transactionId) {
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        Account account = accountRepository.findById( transaction.getAccountId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        // Возвращаем деньги
+        account.setBalance( account.getBalance().add( transaction.getAmount()));
+        accountRepository.save( account );
+
+        // Удаляем отменённую транзакцию
+        transactionRepository.delete( transaction );
     }
 
     public AccountResponse getAccount(UUID userId) {

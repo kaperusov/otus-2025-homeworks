@@ -1,12 +1,12 @@
 package ru.otus.models;
 
-public enum STATUS {
+public enum OrderStatus {
     NEW,          // Новый заказ
     PROCESSING,   // В обработке
     PAID,         // Оплачен
     SHIPPED,      // Отправлен
     DELIVERED,    // Доставлен
     CANCELLED,    // Отменен
-    REFUNDED,     // Возврат оформлен
+    CONFIRMED,    // Заказ обработан
     FAILED        // Ошибка при обработке
 }

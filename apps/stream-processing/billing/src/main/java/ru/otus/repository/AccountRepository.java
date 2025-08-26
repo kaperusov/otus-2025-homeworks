@@ -7,7 +7,7 @@ import ru.otus.models.Account;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface AccountRepository extends JpaRepository<Account, UUID> {
+public interface AccountRepository extends JpaRepository<Account, Long> {
     Optional<Account> findByUserId(UUID userId);
     boolean existsByUserId(UUID userId);
 }
