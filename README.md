@@ -14,4 +14,6 @@
 
  - 19. [Backend for frontends. Apigateway](hw06-auth/README.md)
 
- - 24. [RESTful // ДЗ ](hw07-restful/README.md)
+ - 24. [RESTful // ДЗ](hw07-restful/README.md)
+
+ - 28. [Распределенные транзакции // ДЗ](hw08-transaction/README.md)
