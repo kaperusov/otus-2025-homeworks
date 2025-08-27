@@ -8,8 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import ru.otus.models.Order;
-import ru.otus.models.OrderRequest;
+import ru.otus.dto.OrderRequest;
+import ru.otus.service.IdempotencyService;
 import ru.otus.service.OrderService;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/order")
@@ -18,12 +21,43 @@ import ru.otus.service.OrderService;
 public class OrderController {
 
     private final OrderService orderService;
+    private final IdempotencyService idempotencyService;
 
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Object> createOrder(@Valid @RequestBody OrderRequest request) {
+
+        // Проверяем идемпотентность по ключу (краткосрочная)
+        if (request.getIdempotencyKey() != null) {
+            Object cachedResult = idempotencyService.getCachedResult(request.getIdempotencyKey());
+            if (cachedResult != null) {
+                log.info("Returning cached result for idempotency key: {}", request.getIdempotencyKey());
+                return ResponseEntity.status(HttpStatus.OK).body(cachedResult);
+            }
+
+            if (idempotencyService.isDuplicateRequest(request.getIdempotencyKey())) {
+                log.warn("Duplicate request with idempotency key: {}", request.getIdempotencyKey());
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("Duplicate request. Use unique idempotency key.");
+            }
+        }
+
+        // Проверяем дубликаты по БД (долгосрочная)
+        Optional<Order> duplicateOrder = orderService.findDuplicateOrder(request);
+        if (duplicateOrder.isPresent()) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(duplicateOrder);
+        }
+
+
         try {
             Order order = orderService.createOrder(request);
+            // Сохраняем результат для будущих дубликатов
+            if (request.getIdempotencyKey() != null) {
+                idempotencyService.storeRequestResult(request.getIdempotencyKey(), order);
+            }
+
             return ResponseEntity.status(HttpStatus.CREATED).body(order);
         }
         catch (HttpClientErrorException e ) {

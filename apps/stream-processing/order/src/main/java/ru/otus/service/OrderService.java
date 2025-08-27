@@ -10,12 +10,15 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 import ru.otus.models.Order;
-import ru.otus.models.OrderRequest;
+import ru.otus.dto.OrderRequest;
+import ru.otus.models.OrderItem;
 import ru.otus.models.OrderStatus;
-import ru.otus.models.SagaStepResult;
+import ru.otus.dto.SagaStepResult;
+import ru.otus.repository.OrderItemRepository;
 import ru.otus.repository.OrderRepository;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -26,6 +29,7 @@ public class OrderService {
     // Bean injection
     private final RestTemplate restTemplate;
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
     // ---
 
     private static final String BILLING_SERVICE_BASEURL = System.getenv("BILLING_SERVICE_BASEURL");
@@ -86,18 +90,36 @@ public class OrderService {
         UUID orderId = order.getId();
         log.info( "New order created: {}", order);
 
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (OrderRequest.OrderItem i : request.getItems()) {
+            orderItems.add(
+                    OrderItem.builder()
+                            .order(order)
+                            .name(i.getName())
+                            .quantity(i.getQuantity())
+                            .productId(i.getProductId())
+                            .price(i.getPrice())
+                            .build());
+        }
+        List<OrderItem> savedItems = orderItemRepository.saveAll(orderItems);
+        log.info( "Saved order items: {}", savedItems);
+
         try {
             // Шаг 1: Выполнение платежа
             SagaStepResult paymentResult = processPayment(request.getUserId(), orderId, request.getItems());
             log.debug( "1. Payment result: {}", paymentResult);
-            if (!paymentResult.isSuccess()) {
+            if (paymentResult.isSuccess()) {
+                updateOrderStatus(orderId, OrderStatus.PAID, null);
+            } else {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Payment failed: " + paymentResult.getMessage());
             }
 
             // Шаг 2: Резервирование товара
             SagaStepResult warehouseResult = reserveItems(orderId, request.getItems());
             log.debug( "2. Warehouse reservation result: {}", warehouseResult);
-            if (!warehouseResult.isSuccess()) {
+            if (warehouseResult.isSuccess()) {
+                updateOrderStatus(orderId, OrderStatus.ITEMS_RESERVED, null);
+            } else {
                 cancelPayment(orderId, paymentResult.getTransactionId());
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Warehouse reservation failed: " + warehouseResult.getMessage());
             }
@@ -105,7 +127,9 @@ public class OrderService {
             // Шаг 3: Резервирование доставки
             SagaStepResult deliveryResult = reserveDelivery(orderId, request.getDeliveryInfo());
             log.debug( "3. Delivery reservation result: {}", deliveryResult);
-            if (!deliveryResult.isSuccess()) {
+            if (deliveryResult.isSuccess()) {
+                updateOrderStatus(orderId, OrderStatus.DELIVERY_BOOKED, null);
+            } else {
                 cancelPayment(orderId, paymentResult.getTransactionId());
                 cancelReservation(orderId, warehouseResult.getTransactionId());
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Delivery reservation failed: " + deliveryResult.getMessage());
@@ -113,6 +137,7 @@ public class OrderService {
 
             // Все шаги успешны
             Order confirmedOrder = updateOrderStatus(orderId, OrderStatus.CONFIRMED, null);
+            confirmedOrder.setItems(savedItems);
             log.info( "Order processing No.{} (UUID: {}) completed successfully!", order.getNumber(), order.getId());
             return confirmedOrder;
         }
@@ -226,6 +251,21 @@ public class OrderService {
         order.setErrorMessage(errorMessage);
 
         return orderRepository.save(order);
+    }
+
+    public Optional<Order> findDuplicateOrder(OrderRequest request) {
+        // Проверяем по бизнес-правилам: тот же пользователь + похожие товары + короткий промежуток времени,
+        // в котором похожий заказ мог бы быть сделан
+        List<String> itemNames = new ArrayList<>();
+        for (OrderRequest.OrderItem i : request.getItems()) {
+            itemNames.add( i.getName());
+        }
+        return orderRepository.existsSimilarOrder(
+                request.getUserId(),
+                itemNames,
+                LocalDateTime.now().minusMinutes(5),
+                itemNames.size()
+        );
     }
 
 

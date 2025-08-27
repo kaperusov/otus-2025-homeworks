@@ -1,4 +1,4 @@
-package ru.otus.models;
+package ru.otus.dto;
 
 import lombok.Data;
 
@@ -14,6 +14,8 @@ public class OrderRequest {
     private List<OrderItem> items;
     private PaymentInfo paymentInfo;
     private DeliveryInfo deliveryInfo;
+
+    private UUID idempotencyKey; // Ключ идемпотентности
 
     @Data
     public static class OrderItem {
