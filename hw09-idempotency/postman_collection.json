@@ -1,0 +1,406 @@
+{
+	"info": {
+		"_postman_id": "61cfbf6b-fefd-4361-bfd4-b0f168b78e99",
+		"name": "REST API hw09",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "296292",
+		"_collection_link": "https://smk-systems.postman.co/workspace/7f775539-e843-4229-81d8-7102ff5a9832/collection/296292-61cfbf6b-fefd-4361-bfd4-b0f168b78e99?action=share&source=collection_link&creator=296292"
+	},
+	"item": [
+		{
+			"name": "Register user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"New user created\", function() {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"const responseData = pm.response.json();",
+							"//console.log(\"responseData:\", responseData);",
+							"const username = responseData.user.username;",
+							"const email = responseData.user.email;",
+							"const id = responseData.user.id",
+							"pm.collectionVariables.set(\"userUsername\", username);",
+							"pm.collectionVariables.set(\"userEmail\", email);",
+							"pm.collectionVariables.set(\"userId\", id);",
+							"console.log(\"Created new user with username:\", username);",
+							"console.log(\"User ID:\", id);",
+							"console.log(\"User email:\", email);",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "{{$randomUserName}}",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "{{$randomEmail}}",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "123",
+							"type": "text"
+						},
+						{
+							"key": "firstName",
+							"value": "{{$randomUserName}}",
+							"type": "text"
+						},
+						{
+							"key": "lastName",
+							"value": "{{$randomUserName}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/register",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create billing account",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Account created\", function() {",
+							"    pm.response.to.have.status(201);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\": \"{{userId}}\",\n    \"email\": \"{{userEmail}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/billing/accounts",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"billing",
+						"accounts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Deposit",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const responseData = pm.response.json();",
+							"",
+							"const baseDepositeAmount = pm.environment.get(\"baseDepositeAmount\")",
+							"pm.test(\"Deposit successful\", function() {",
+							"    pm.response.to.have.status(200);",
+							"    // Проверяем, что баланс равен сумме депозита",
+							"    pm.expect(responseData.balance).to.equal(baseDepositeAmount);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\": \"{{userId}}\",\n    \"amount\": {{baseDepositeAmount}}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/billing/deposit",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"billing",
+						"deposit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create order",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const responseData = pm.response.json();",
+							"pm.environment.set(\"price\", responseData.price)",
+							"",
+							"",
+							"pm.test(\"New order created\", function() {",
+							"    pm.response.to.have.status(201);",
+							"    console.log(pm.response.json());",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Генерируем UUID для idempotencyKey",
+							"const idempotencyKey = require('uuid').v4();",
+							"pm.globals.set('idempotencyKey', idempotencyKey);",
+							"pm.request.body.raw = pm.request.body.raw.replace(",
+							"    '\"{{idempotencyKey}}\"', ",
+							"    `\"${idempotencyKey}\"`",
+							");"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\": \"{{userId}}\",\n    \"idempotencyKey\": \"{{idempotencyKey}}\",\n    \"items\": [\n      {\n        \"name\": \"Tomato\",\n        \"quantity\": 2,\n        \"price\": 9.99\n      },\n      {\n        \"name\": \"Banana\",\n        \"quantity\": 3,\n        \"price\": 5.70\n      }\n    ],\n    \"deliveryInfo\": {\n      \"address\": \"Москва, ул. Примерная, д. 1\",\n      \"preferredTimeSlot\": \"2024-01-15T14:00:00\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/order",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"order"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create duplicate order with idempotency key",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const responseData = pm.response.json();",
+							"pm.environment.set(\"price\", responseData.price)",
+							"",
+							"",
+							"pm.test(\"Get cached order for idempotency key\", function() {",
+							"    pm.response.to.have.status(200);",
+							"    console.log(pm.response.json());",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\": \"{{userId}}\",\n    \"idempotencyKey\": \"{{idempotencyKey}}\",\n    \"items\": [\n      {\n        \"name\": \"Tomato\",\n        \"quantity\": 2,\n        \"price\": 9.99\n      },\n      {\n        \"name\": \"Banana\",\n        \"quantity\": 3,\n        \"price\": 5.70\n      }\n    ],\n    \"deliveryInfo\": {\n      \"address\": \"Москва, ул. Примерная, д. 1\",\n      \"preferredTimeSlot\": \"2024-01-15T14:00:00\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/order",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"order"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create duplicate order without key",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const responseData = pm.response.json();",
+							"pm.environment.set(\"price\", responseData.price)",
+							"",
+							"",
+							"pm.test(\"Founded a duplicate request\", function() {",
+							"    pm.response.to.have.status(409);",
+							"    console.log(pm.response.json());",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\": \"{{userId}}\",\n    \"items\": [\n      {\n        \"name\": \"Tomato\",\n        \"quantity\": 2,\n        \"price\": 9.99\n      },\n      {\n        \"name\": \"Banana\",\n        \"quantity\": 3,\n        \"price\": 5.70\n      }\n    ],\n    \"deliveryInfo\": {\n      \"address\": \"Москва, ул. Примерная, д. 1\",\n      \"preferredTimeSlot\": \"2024-01-15T14:00:00\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/order",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"order"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://arch.homework/",
+			"type": "default"
+		},
+		{
+			"key": "userUsername",
+			"value": ""
+		},
+		{
+			"key": "userEmail",
+			"value": ""
+		},
+		{
+			"key": "userId",
+			"value": ""
+		},
+		{
+			"key": "baseDepositeAmount",
+			"value": "200",
+			"type": "default"
+		}
+	]
+}
