@@ -17,6 +17,6 @@ spec:
   endpoints:
   - port: http
     scrapeTimeout: 30s
-    path: /prometheus     
+    path: /actuator/prometheus
     honorLabels: true
     scheme: http

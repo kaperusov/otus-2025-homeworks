@@ -4,6 +4,9 @@ metadata:
   name: {{ include "warehouse.fullname" . }}
   labels:
     {{- include "warehouse.labels" . | nindent 4 }}
+    {{- with .Values.service.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   type: {{ .Values.service.type }}
   ports:
