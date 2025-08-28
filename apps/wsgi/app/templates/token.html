@@ -33,27 +33,27 @@
     </div>
 </body>
 
-<script type="javascript">
-    //
-    // The use of navigator.clipboard requires a secure origin.
-    // So if your dev environment is being served over HTTP, then the clipboard method won't be available.
-    //
-    // via. https://stackoverflow.com/questions/71873824/copy-text-to-clipboard-cannot-read-properties-of-undefined-reading-writetext
-    //
-    function unsecuredCopyToClipboard() {
-        let text = document.getElementById('toCopy').innerHTML;
-        const textArea = document.createElement("textarea");
-        textArea.value = text;
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        try {
-            document.execCommand('copy');
-            document.getElementById('copied').style.display = 'inline';
-        } catch (err) {
-            console.error('Unable to copy to clipboard', err);
-        }
-        document.body.removeChild(textArea);
+<script>
+//
+// The use of navigator.clipboard requires a secure origin.
+// So if your dev environment is being served over HTTP, then the clipboard method won't be available.
+//
+// via. https://stackoverflow.com/questions/71873824/copy-text-to-clipboard-cannot-read-properties-of-undefined-reading-writetext
+//
+function unsecuredCopyToClipboard() {
+    let text = document.getElementById('toCopy').innerHTML;
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+        document.execCommand('copy');
+        document.getElementById('copied').style.display = 'inline';
+    } catch (err) {
+        console.error('Unable to copy to clipboard', err);
     }
+    document.body.removeChild(textArea);
+}
 </script>
 </html>
