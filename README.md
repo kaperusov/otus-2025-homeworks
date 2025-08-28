@@ -19,4 +19,5 @@
  - 28. [Распределенные транзакции // ДЗ](hw08-transaction/README.md)
 
  - 34. [Идемпотентость и коммутативность API в HTTP и очередях // ДЗ](hw09-idempotency/README.md)
- 
+
+ - [Проектная работа](project/README.md) 
